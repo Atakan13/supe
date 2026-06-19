@@ -39,8 +39,6 @@ export default function DraftPage() {
   const [search, setSearch] = useState('')
   const [currentTurnUserId, setCurrentTurnUserId] = useState(null)
   const [tickerItems, setTickerItems] = useState(['Draft başladı! Oyuncular seçiliyor...'])
-  const [modalCard, setModalCard] = useState(null)
-  const [modalPos, setModalPos] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -146,22 +144,8 @@ export default function DraftPage() {
     ? lobbyRef.current.budget - myPicks.reduce((s, p) => s + (p.price || 0), 0)
     : 0
 
-  const openModal = (card) => {
+  const openModal = async (card) => {
     if (!isMyTurn || myFinished || submitting) return
-    setErrorMsg('')
-    setModalCard(card)
-    setModalPos(null)
-  }
-
-  const closeModal = () => {
-    if (submitting) return
-    setModalCard(null)
-    setModalPos(null)
-    setErrorMsg('')
-  }
-
-  const confirmPick = async () => {
-    if (!modalCard || !modalPos || submitting) return
     setSubmitting(true)
     setErrorMsg('')
     try {
@@ -171,38 +155,27 @@ export default function DraftPage() {
         .select('player_card_id, picked_by')
         .eq('lobby_id', lb.id)
 
-      const alreadyPicked = freshPicks?.find(p => p.player_card_id === modalCard.id)
+      const alreadyPicked = freshPicks?.find(p => p.player_card_id === card.id)
       if (alreadyPicked) {
-        setErrorMsg('Bu oyuncu zaten seçildi!')
         await loadPicks()
-        setSubmitting(false)
         return
       }
 
       const myFreshPicks = freshPicks?.filter(p => p.picked_by === userId) || []
 
-      const { error } = await supabase
-        .from('draft_picks')
-        .insert({
-          lobby_id: lb.id,
-          player_card_id: modalCard.id,
-          picked_by: userId,
-          round: myFreshPicks.length + 1,
-          pick_order: (freshPicks?.length || 0) + 1,
-          price: modalCard.market_value,
-          squad_position: modalPos,
-        })
+      const { error } = await supabase.from('draft_picks').insert({
+        lobby_id: lb.id,
+        player_card_id: card.id,
+        picked_by: userId,
+        round: myFreshPicks.length + 1,
+        pick_order: (freshPicks?.length || 0) + 1,
+        price: card.market_value,
+        squad_position: card.position,
+      })
 
-      if (error) {
-        if (error.code === '23505') {
-          setErrorMsg('Bu oyuncu az önce seçildi!')
-          await loadPicks()
-        } else {
-          setErrorMsg('Hata: ' + error.message)
-        }
+      if (error && error.code !== '23505') {
+        setErrorMsg('Hata: ' + error.message)
       } else {
-        setModalCard(null)
-        setModalPos(null)
         await loadPicks()
       }
     } catch (e) {
@@ -211,6 +184,8 @@ export default function DraftPage() {
       setSubmitting(false)
     }
   }
+
+  const closeModal = () => {}
 
   const handleFinish = async () => {
     if (myPicks.length < 18 || submitting) return
@@ -366,34 +341,23 @@ export default function DraftPage() {
             <div style={{ color:'#606080', fontSize:'.72rem' }}>{myPicks.length}/18 seçildi</div>
           </div>
           <div style={{ flex:1, overflowY:'auto', padding:'.5rem' }}>
-            <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', marginBottom:'.2rem' }}>İLK 11</div>
-            {myPicks.slice(0,11).map(pick => {
+            <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', marginBottom:'.3rem' }}>SEÇİLEN OYUNCULAR ({myPicks.length}/18)</div>
+            {myPicks.map((pick, i) => {
               const ps = getPosStyle(pick.squad_position || pick.player_cards?.position)
               return (
                 <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#12122a', border:'1px solid #1e1e4a' }}>
-                  <span style={{ background:ps.color, color:ps.textColor, fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{pick.squad_position}</span>
+                  <span style={{ color:'#606080', fontSize:'.6rem', fontWeight:700, minWidth:16, textAlign:'center', flexShrink:0 }}>{i+1}</span>
+                  <span style={{ background:ps.color, color:ps.textColor, fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{pick.player_cards?.position || pick.squad_position}</span>
                   <div style={{ flex:1, minWidth:0, fontWeight:700, fontSize:'.75rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pick.player_cards?.name}</div>
                   <div style={{ fontWeight:800, color:'#fbbf24', fontSize:'.8rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
                 </div>
               )
             })}
-            {myPicks.length > 11 && <>
-              <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', margin:'.4rem 0 .2rem' }}>YEDEKLER</div>
-              {myPicks.slice(11).map(pick => {
-                const ps = getPosStyle(pick.squad_position || pick.player_cards?.position)
-                return (
-                  <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'rgba(18,18,42,.5)', border:'1px solid #1e1e4a' }}>
-                    <span style={{ background:ps.color, color:ps.textColor, fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{pick.squad_position}</span>
-                    <div style={{ flex:1, minWidth:0, fontWeight:600, fontSize:'.75rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:'#a0a0c0' }}>{pick.player_cards?.name}</div>
-                    <div style={{ fontWeight:700, color:'#a0a0c0', fontSize:'.78rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
-                  </div>
-                )
-              })}
-            </>}
             {Array.from({ length: Math.max(0, 18-myPicks.length) }).map((_,i) => (
-              <div key={'e'+i} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#0f0f2a', border:'1px dashed #1e1e4a', opacity:.4 }}>
-                <div style={{ width:30, height:16, background:'#1e1e4a', borderRadius:3, flexShrink:0 }}/>
-                <div style={{ color:'#606080', fontSize:'.72rem' }}>{i+myPicks.length < 11 ? 'İlk 11 slotu' : 'Yedek slotu'}</div>
+              <div key={'e'+i} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#0f0f2a', border:'1px dashed #1e1e4a', opacity:.35 }}>
+                <span style={{ color:'#606080', fontSize:'.6rem', fontWeight:700, minWidth:16, textAlign:'center' }}>{myPicks.length+i+1}</span>
+                <div style={{ width:30, height:14, background:'#1e1e4a', borderRadius:3, flexShrink:0 }}/>
+                <div style={{ color:'#606080', fontSize:'.72rem' }}>Boş slot</div>
               </div>
             ))}
           </div>
@@ -406,52 +370,6 @@ export default function DraftPage() {
         </div>
       </div>
 
-      {/* MEVKİ MODAL */}
-      {modalCard && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}
-          onClick={e => { if(e.target===e.currentTarget && !submitting) closeModal() }}>
-          <div style={{ background:'#12122a', border:'1px solid #2a2a5a', borderRadius:16, padding:'1.5rem', width:'100%', maxWidth:420 }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1rem', paddingBottom:'1rem', borderBottom:'1px solid #1e1e4a' }}>
-              <div style={{ width:48, height:48, borderRadius:10, background:'#1e1e4a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.4rem', fontWeight:900, color:'#fbbf24' }}>{modalCard.overall}</div>
-              <div>
-                <div style={{ fontWeight:800, fontSize:'1rem' }}>{modalCard.name}</div>
-                <div style={{ color:'#606080', fontSize:'.8rem' }}>{modalCard.club} · {modalCard.nation}</div>
-                <div style={{ color:'#10b981', fontSize:'.75rem', fontWeight:700 }}>€{(modalCard.market_value/1e6).toFixed(1)}M</div>
-              </div>
-            </div>
-            <div style={{ fontWeight:700, fontSize:'.85rem', color:'#a0a0c0', marginBottom:'.75rem' }}>Hangi mevkide oynayacak?</div>
-            {Object.entries(CATEGORIES).map(([cat, val]) => (
-              <div key={cat} style={{ marginBottom:'.75rem' }}>
-                <div style={{ fontSize:'.62rem', color:val.textColor, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', marginBottom:'.3rem' }}>{cat}</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'.3rem' }}>
-                  {val.positions.map(pos => (
-                    <button key={pos} onClick={() => setModalPos(pos)}
-                      style={{ background:modalPos===pos?val.color:'#0f0f2a', border:`1.5px solid ${modalPos===pos?val.textColor:'#2a2a5a'}`, color:modalPos===pos?val.textColor:'#606080', padding:'.3rem .65rem', borderRadius:7, fontSize:'.78rem', fontWeight:700, cursor:'pointer', transition:'all .1s' }}>
-                      {pos}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {errorMsg && (
-              <div style={{ color:'#ef4444', fontSize:'.8rem', marginBottom:'.75rem', padding:'.5rem', background:'rgba(239,68,68,.1)', borderRadius:6 }}>
-                {errorMsg}
-              </div>
-            )}
-            <div style={{ display:'flex', gap:'.75rem', marginTop:'1rem' }}>
-              <button onClick={closeModal} disabled={submitting}
-                style={{ flex:1, padding:'.7rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:600, cursor:'pointer' }}>
-                İptal
-              </button>
-              <button onClick={confirmPick} disabled={!modalPos || submitting}
-                style={{ flex:2, padding:'.7rem', borderRadius:10, border:'none', background:modalPos&&!submitting?'#7c3aed':'#1e1e4a', color:modalPos&&!submitting?'#fff':'#606080', fontWeight:700, cursor:modalPos&&!submitting?'pointer':'not-allowed', fontSize:'.88rem' }}>
-                {submitting ? 'Ekleniyor...' : modalPos ? `✓ ${modalPos} olarak ekle` : 'Mevki seç'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+
   )
 }
