@@ -1,4 +1,6 @@
 import { PLAYER_CARDS } from '../lib/playerCards'
+import { PLAYER_CARDS } from '../lib/playerCards'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -62,17 +64,12 @@ export default function DraftPage() {
     if (!lobbyId) return
     const { data, error } = await supabase
       .from('draft_picks')
-      .select('*')
+      .select('*, player_cards(*)')
       .eq('lobby_id', lobbyId)
       .order('pick_order')
     if (error || !data) return
 
-    // Lokal player_cards verisiyle zenginleştir
-    const enriched = data.map(pick => ({
-      ...pick,
-      player_cards: PLAYER_CARDS.find(c => c.id === pick.player_card_id)
-    }))
-    setPicks(enriched)
+    setPicks(data)
     setCurrentTurnUserId(calcTurn(data.length, lobbyPlayersRef.current))
 
     const newOpPicks = data.filter(p => p.picked_by !== userId)
@@ -112,6 +109,8 @@ export default function DraftPage() {
     setLobbyPlayers(pl || [])
     lobbyPlayersRef.current = pl || []
 
+import { PLAYER_CARDS } from '../lib/playerCards'
+    setAllCards(PLAYER_CARDS.sort((a,b) => b.overall - a.overall))
 
 
     await loadPicks()
