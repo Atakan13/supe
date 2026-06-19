@@ -9,29 +9,20 @@ function getUserId() {
 }
 
 const CATEGORIES = {
-  'Kaleci':    { positions: ['GK'], color: '#1e3a5f', textColor: '#60a5fa', badge: 'badge-gk' },
-  'Defans':    { positions: ['CB','LB','RB','SW'], color: '#1e4a2a', textColor: '#4ade80', badge: 'badge-def' },
-  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'], color: '#3a2a1e', textColor: '#fb923c', badge: 'badge-mid' },
-  'Hücum':     { positions: ['LW','RW','ST','CF'], color: '#3a1e1e', textColor: '#f87171', badge: 'badge-att' },
+  'Kaleci':    { positions: ['GK'], color: '#1e3a5f', textColor: '#60a5fa' },
+  'Defans':    { positions: ['CB','LB','RB'], color: '#1e4a2a', textColor: '#4ade80' },
+  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'], color: '#3a2a1e', textColor: '#fb923c' },
+  'Hücum':     { positions: ['LW','RW','ST','CF'], color: '#3a1e1e', textColor: '#f87171' },
 }
 
-const ALL_POSITIONS = ['GK','CB','LB','RB','CDM','CM','CAM','LM','RM','LW','RW','ST','CF']
-
-function getPosCategory(pos) {
-  for (const [cat, val] of Object.entries(CATEGORIES)) {
-    if (val.positions.includes(pos)) return cat
+function getPosStyle(pos) {
+  for (const val of Object.values(CATEGORIES)) {
+    if (val.positions.includes(pos)) return val
   }
-  return 'Orta Saha'
+  return { color: '#2a2a5a', textColor: '#a0a0c0' }
 }
 
-function getPosColor(pos) {
-  const cat = getPosCategory(pos)
-  return CATEGORIES[cat]
-}
-
-const TICKER_MESSAGES = [
-  'TRANSFER HABERİ', 'SON DAKİKA', 'TRANSFER GELİŞMESİ', 'BOMBA TRANSFER', 'RESMİ AÇIKLAMA'
-]
+const TICKER_MSGS = ['TRANSFER HABERİ','SON DAKİKA','BOMBA TRANSFER','RESMİ AÇIKLAMA','TRANSFER GELİŞMESİ']
 
 export default function DraftPage() {
   const { code } = useParams()
@@ -43,21 +34,23 @@ export default function DraftPage() {
   const [allCards, setAllCards] = useState([])
   const [picks, setPicks] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedCard, setSelectedCard] = useState(null)
-  const [selectedPos, setSelectedPos] = useState(null)
   const [activeCategory, setActiveCategory] = useState('Kaleci')
   const [search, setSearch] = useState('')
   const [currentTurnUserId, setCurrentTurnUserId] = useState(null)
-  const [tickerItems, setTickerItems] = useState([])
-  const [showPosModal, setShowPosModal] = useState(false)
+  const [tickerItems, setTickerItems] = useState(['Draft başladı! Oyuncular seçiliyor...'])
+
+  // Modal state
+  const [modalCard, setModalCard] = useState(null)
+  const [modalPos, setModalPos] = useState(null)
+
   const channelRef = useRef(null)
-  const tickerRef = useRef(null)
+  const prevOpPickCount = useRef(0)
 
   const myPicks = picks.filter(p => p.picked_by === userId)
   const opPicks = picks.filter(p => p.picked_by !== userId)
   const isMyTurn = currentTurnUserId === userId
-  const totalPicks = picks.length
   const myFinished = myPicks.length >= 18
+  const budget = lobby ? lobby.budget - myPicks.reduce((s,p) => s + (p.price||0), 0) : 0
 
   useEffect(() => {
     init()
@@ -89,69 +82,72 @@ export default function DraftPage() {
       .subscribe()
   }
 
+  const calcTurn = (totalCount, players) => {
+    if (!players || players.length < 2) return players?.[0]?.user_id
+    const cycle = players.length * 2
+    const pos = totalCount % cycle
+    if (pos < players.length) return players[pos].user_id
+    return players[cycle - 1 - pos].user_id
+  }
+
   const loadPicks = async (lobbyId, players) => {
-    const { data } = await supabase.from('draft_picks').select('*, player_cards(*)').eq('lobby_id', lobbyId).order('pick_order')
+    const { data } = await supabase
+      .from('draft_picks')
+      .select('*, player_cards(*)')
+      .eq('lobby_id', lobbyId)
+      .order('pick_order')
     if (!data) return
     setPicks(data)
-    
-    // Sıra hesapla: snake draft (1,2,2,1,1,2,2...)
+
     const pl = players.length > 0 ? players : lobbyPlayers
-    if (pl.length >= 2) {
-      const turn = calcTurn(data.length, pl)
-      setCurrentTurnUserId(turn)
-    }
+    setCurrentTurnUserId(calcTurn(data.length, pl))
 
     // Yeni rakip seçimini ticker'a ekle
-    const newOpPick = data.filter(p => p.picked_by !== userId).slice(-1)[0]
-    if (newOpPick?.player_cards) {
-      addTickerItem(newOpPick.player_cards.name, newOpPick.squad_position, newOpPick.player_cards.overall)
+    const newOpPicks = data.filter(p => p.picked_by !== userId)
+    if (newOpPicks.length > prevOpPickCount.current) {
+      const newest = newOpPicks[newOpPicks.length - 1]
+      if (newest?.player_cards) {
+        const label = TICKER_MSGS[Math.floor(Math.random() * TICKER_MSGS.length)]
+        const msg = `${label}: ${newest.player_cards.name} (${newest.player_cards.overall}) → ${newest.squad_position} mevkiine transfer oldu!`
+        setTickerItems(prev => [...prev, msg])
+      }
+      prevOpPickCount.current = newOpPicks.length
     }
   }
 
-  // Snake draft sırası: 0→p0, 1→p1, 2→p1, 3→p0, 4→p0, 5→p1...
-  const calcTurn = (totalPickCount, players) => {
-    if (players.length < 2) return players[0]?.user_id
-    const idx = totalPickCount % (players.length * 2)
-    if (idx < players.length) return players[idx % players.length]?.user_id
-    return players[players.length - 1 - (idx - players.length)]?.user_id
-  }
-
-  const addTickerItem = (name, pos, overall) => {
-    const label = TICKER_MESSAGES[Math.floor(Math.random() * TICKER_MESSAGES.length)]
-    const item = `${label}: ${name} (${overall}) ${pos} mevkiine transfer oldu!`
-    setTickerItems(prev => [...prev, item])
-  }
-
-  const handleCardClick = (card) => {
+  // Karta tıklayınca modal aç
+  const openModal = (card) => {
     if (!isMyTurn || myFinished) return
     const pickedIds = picks.map(p => p.player_card_id)
     if (pickedIds.includes(card.id)) return
-    setSelectedCard(card)
-    setSelectedPos(null)
-    setShowPosModal(true)
+    setModalCard(card)
+    setModalPos(null)
   }
 
-  const handleConfirmPick = async () => {
-    if (!selectedCard || !selectedPos) return
-    await supabase.from('draft_picks').insert({
+  const closeModal = () => {
+    setModalCard(null)
+    setModalPos(null)
+  }
+
+  const confirmPick = async () => {
+    if (!modalCard || !modalPos) return
+    const { error } = await supabase.from('draft_picks').insert({
       lobby_id: lobby.id,
-      player_card_id: selectedCard.id,
+      player_card_id: modalCard.id,
       picked_by: userId,
-      round: Math.floor(myPicks.length / 1) + 1,
+      round: myPicks.length + 1,
       pick_order: picks.length + 1,
-      price: selectedCard.market_value,
-      squad_position: selectedPos,
+      price: modalCard.market_value,
+      squad_position: modalPos,
     })
-    setSelectedCard(null)
-    setSelectedPos(null)
-    setShowPosModal(false)
+    if (error) { alert('Hata: ' + error.message); return }
+    closeModal()
   }
 
   const handleFinish = async () => {
     if (myPicks.length < 18) return
     const lineup = myPicks.slice(0, 11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
     const bench = myPicks.slice(11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
-    
     const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lobby.id).eq('user_id', userId).single()
     const squadData = { lobby_id: lobby.id, user_id: userId, formation: lobby.formation, lineup, bench }
     if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
@@ -178,8 +174,7 @@ export default function DraftPage() {
   })
 
   const myTeamName = lobbyPlayers.find(p => p.user_id === userId)?.team_name || 'Kadrom'
-  const turnPlayerName = lobbyPlayers.find(p => p.user_id === currentTurnUserId)?.team_name || '...'
-  const budget = lobby ? lobby.budget - myPicks.reduce((s,p) => s + (p.price||0), 0) : 0
+  const turnName = lobbyPlayers.find(p => p.user_id === currentTurnUserId)?.team_name || '...'
 
   if (loading) return (
     <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -189,204 +184,215 @@ export default function DraftPage() {
 
   return (
     <div style={{ height:'100vh', background:'var(--bg-primary)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+      <style>{`
+        @keyframes tickerMove { from { transform:translateX(0) } to { transform:translateX(-50%) } }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+      `}</style>
 
-      {/* SIRA GÖSTERGESİ */}
-      <div style={{ padding:'.6rem 1.5rem', background: isMyTurn ? 'rgba(124,58,237,.2)' : 'rgba(30,30,70,.5)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', transition:'background .3s' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
-          <div style={{ width:8, height:8, borderRadius:'50%', background: isMyTurn ? 'var(--green)' : 'var(--yellow)', animation: isMyTurn ? 'pulse 1s infinite' : 'none' }}></div>
-          <span style={{ fontWeight:700, fontSize:'.9rem', color: isMyTurn ? 'var(--purple-light)' : 'var(--text-secondary)' }}>
-            {isMyTurn ? '⚡ Sıra sende! Oyuncu seç.' : `⏳ ${turnPlayerName} seçiyor...`}
+      {/* SIRA BAR */}
+      <div style={{ padding:'.6rem 1.5rem', background: isMyTurn ? 'rgba(124,58,237,.25)' : 'rgba(20,20,50,.8)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
+          <div style={{ width:10, height:10, borderRadius:'50%', background: isMyTurn ? '#10b981' : '#f59e0b', animation: isMyTurn ? 'blink 1s infinite' : 'none' }} />
+          <span style={{ fontWeight:700, fontSize:'.9rem', color: isMyTurn ? '#a78bfa' : '#a0a0c0' }}>
+            {isMyTurn ? '⚡ Sıra sende! Bir oyuncu seç.' : `⏳ ${turnName} seçiyor, bekliyorsun...`}
           </span>
         </div>
-        <div style={{ display:'flex', gap:'1.5rem', fontSize:'.8rem' }}>
-          <span style={{ color:'var(--text-muted)' }}>Pick: <strong style={{ color:'var(--text-primary)' }}>{picks.length + 1}/36</strong></span>
-          <span style={{ color:'var(--text-muted)' }}>Bütçe: <strong style={{ color:'var(--green)' }}>€{(budget/1e6).toFixed(0)}M</strong></span>
-          <span style={{ color:'var(--text-muted)' }}>Seçilen: <strong style={{ color:'var(--text-primary)' }}>{myPicks.length}/18</strong></span>
+        <div style={{ display:'flex', gap:'1.5rem', fontSize:'.8rem', color:'var(--text-muted)' }}>
+          <span>Pick <strong style={{ color:'#fff' }}>{picks.length + 1}/36</strong></span>
+          <span>Bütçe <strong style={{ color:'#10b981' }}>€{(budget/1e6).toFixed(0)}M</strong></span>
+          <span>Seçilen <strong style={{ color:'#fff' }}>{myPicks.length}/18</strong></span>
         </div>
       </div>
 
-      {/* ANA İÇERİK */}
-      <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 300px', overflow:'hidden' }}>
+      {/* GRID */}
+      <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 290px', overflow:'hidden' }}>
 
-        {/* SOL: Oyuncu Havuzu */}
+        {/* SOL */}
         <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', borderRight:'1px solid var(--border)', position:'relative' }}>
 
-          {/* Kilit overlay */}
+          {/* KİLİT */}
           {!isMyTurn && (
-            <div style={{ position:'absolute', inset:0, background:'rgba(10,10,26,.7)', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:'1rem', backdropFilter:'blur(2px)' }}>
-              <div style={{ fontSize:'3rem' }}>🔒</div>
-              <div style={{ fontWeight:800, fontSize:'1.1rem', color:'var(--text-secondary)' }}>Rakip seçiyor...</div>
-              <div style={{ color:'var(--text-muted)', fontSize:'.85rem' }}>{turnPlayerName} kendi oyuncusunu seçiyor</div>
+            <div style={{ position:'absolute', inset:0, background:'rgba(10,10,26,.75)', zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem', backdropFilter:'blur(3px)' }}>
+              <div style={{ fontSize:'4rem' }}>🔒</div>
+              <div style={{ fontWeight:800, fontSize:'1.2rem', color:'#a0a0c0' }}>Rakip seçiyor...</div>
+              <div style={{ color:'#606080', fontSize:'.9rem' }}>{turnName} kendi oyuncusunu seçiyor</div>
             </div>
           )}
 
-          {/* Kategori Sekmeleri */}
-          <div style={{ display:'flex', borderBottom:'1px solid var(--border)', background:'var(--bg-secondary)' }}>
+          {/* KATEGORİ SEKMELERİ */}
+          <div style={{ display:'flex', background:'var(--bg-secondary)', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {Object.entries(CATEGORIES).map(([cat, val]) => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} style={{ flex:1, padding:'.75rem .5rem', border:'none', background:'transparent', color: activeCategory===cat ? val.textColor : 'var(--text-muted)', fontWeight:700, fontSize:'.78rem', cursor:'pointer', borderBottom: activeCategory===cat ? `2px solid ${val.textColor}` : '2px solid transparent', transition:'all .15s' }}>
+              <button key={cat} onClick={() => { setActiveCategory(cat); setSearch('') }}
+                style={{ flex:1, padding:'.7rem .4rem', border:'none', background:'transparent', color: activeCategory===cat ? val.textColor : '#606080', fontWeight:700, fontSize:'.76rem', cursor:'pointer', borderBottom: activeCategory===cat ? `2px solid ${val.textColor}` : '2px solid transparent', transition:'all .15s' }}>
                 {cat}
               </button>
             ))}
           </div>
 
-          {/* Arama */}
-          <div style={{ padding:'.75rem 1rem', borderBottom:'1px solid var(--border)' }}>
-            <input className="input" placeholder={`${activeCategory} ara...`} value={search} onChange={e => setSearch(e.target.value)} style={{ padding:'.5rem .75rem', fontSize:'.85rem' }} />
+          {/* ARAMA */}
+          <div style={{ padding:'.6rem 1rem', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
+            <input className="input" placeholder={`${activeCategory} oyuncusu ara...`} value={search} onChange={e => setSearch(e.target.value)}
+              style={{ padding:'.45rem .75rem', fontSize:'.82rem' }} />
           </div>
 
-          {/* Kartlar */}
-          <div style={{ flex:1, overflowY:'auto', padding:'1rem' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:'.6rem' }}>
+          {/* KARTLAR */}
+          <div style={{ flex:1, overflowY:'auto', padding:'.75rem' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))', gap:'.5rem' }}>
               {filteredCards.map(card => {
-                const catInfo = getPosColor(card.position)
+                const ps = getPosStyle(card.position)
                 return (
-                  <div key={card.id} onClick={() => handleCardClick(card)} style={{ background:'var(--bg-card)', border:`1px solid ${selectedCard?.id===card.id?'var(--purple)':'var(--border)'}`, borderRadius:12, padding:'.75rem', cursor: isMyTurn ? 'pointer' : 'default', transition:'all .15s', opacity: isMyTurn ? 1 : .7 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'.4rem' }}>
-                      <div style={{ fontSize:'1.7rem', fontWeight:900, color: card.overall>=85?'var(--gold)':card.overall>=75?'var(--text-primary)':'var(--text-secondary)' }}>{card.overall}</div>
-                      <span style={{ background:catInfo.color, color:catInfo.textColor, fontSize:'.65rem', fontWeight:700, padding:'.2rem .4rem', borderRadius:5, letterSpacing:'.04em' }}>{card.position}</span>
+                  <div key={card.id}
+                    onClick={() => openModal(card)}
+                    style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:10, padding:'.65rem', cursor: isMyTurn ? 'pointer' : 'not-allowed', transition:'border-color .15s, transform .1s', userSelect:'none' }}
+                    onMouseEnter={e => { if(isMyTurn) { e.currentTarget.style.borderColor='#7c3aed'; e.currentTarget.style.transform='translateY(-2px)' } }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor='#1e1e4a'; e.currentTarget.style.transform='translateY(0)' }}
+                  >
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'.35rem' }}>
+                      <span style={{ fontSize:'1.6rem', fontWeight:900, color: card.overall>=85?'#fbbf24':card.overall>=75?'#fff':'#a0a0c0' }}>{card.overall}</span>
+                      <span style={{ background:ps.color, color:ps.textColor, fontSize:'.6rem', fontWeight:700, padding:'.15rem .35rem', borderRadius:4 }}>{card.position}</span>
                     </div>
-                    <div style={{ fontWeight:700, fontSize:'.85rem', marginBottom:'.15rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{card.name}</div>
-                    <div style={{ color:'var(--text-muted)', fontSize:'.7rem', marginBottom:'.4rem' }}>{card.club} · {card.nation}</div>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'.15rem', fontSize:'.68rem', marginBottom:'.4rem' }}>
+                    <div style={{ fontWeight:700, fontSize:'.82rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginBottom:'.1rem' }}>{card.name}</div>
+                    <div style={{ color:'#606080', fontSize:'.68rem', marginBottom:'.35rem' }}>{card.club}</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'.1rem', fontSize:'.65rem' }}>
                       {[['HZ',card.pace],['ŞUT',card.shooting],['PAS',card.passing],['ÇAL',card.dribbling],['DEF',card.defending],['FİZ',card.physical]].map(([l,v])=>(
-                        <div key={l} style={{ display:'flex', justifyContent:'space-between', color:'var(--text-muted)' }}>
-                          <span>{l}</span><span style={{ color:'var(--text-primary)', fontWeight:600 }}>{v}</span>
+                        <div key={l} style={{ display:'flex', justifyContent:'space-between', color:'#606080' }}>
+                          <span>{l}</span><span style={{ color:'#fff', fontWeight:600 }}>{v}</span>
                         </div>
                       ))}
                     </div>
-                    <div style={{ color:'var(--green)', fontSize:'.72rem', fontWeight:700 }}>€{(card.market_value/1e6).toFixed(1)}M</div>
+                    <div style={{ color:'#10b981', fontSize:'.68rem', fontWeight:700, marginTop:'.35rem' }}>€{(card.market_value/1e6).toFixed(1)}M</div>
                   </div>
                 )
               })}
               {filteredCards.length === 0 && (
-                <div style={{ gridColumn:'1/-1', textAlign:'center', color:'var(--text-muted)', padding:'3rem 1rem', fontSize:'.9rem' }}>
-                  Bu kategoride müsait oyuncu yok
+                <div style={{ gridColumn:'1/-1', textAlign:'center', color:'#606080', padding:'3rem', fontSize:'.9rem' }}>
+                  Bu kategoride müsait oyuncu kalmadı
                 </div>
               )}
             </div>
           </div>
 
-          {/* Alt Ticker */}
-          <div style={{ background:'#0a0a1a', borderTop:'1px solid var(--border)', padding:'.4rem 0', overflow:'hidden', position:'relative', height:32 }}>
-            <div style={{ display:'flex', alignItems:'center', height:'100%' }}>
-              <div style={{ background:'var(--red)', color:'white', fontWeight:800, fontSize:'.65rem', padding:'.2rem .5rem', whiteSpace:'nowrap', marginRight:'1rem', letterSpacing:'.05em', flexShrink:0 }}>SON DAKİKA</div>
-              <div style={{ overflow:'hidden', flex:1 }}>
-                <div ref={tickerRef} style={{ display:'flex', gap:'3rem', animation:'ticker 20s linear infinite', whiteSpace:'nowrap' }}>
-                  {tickerItems.length === 0 ? (
-                    <span style={{ color:'var(--text-muted)', fontSize:'.72rem' }}>Draft başladı! Oyuncular seçiliyor...</span>
-                  ) : (
-                    [...tickerItems, ...tickerItems].map((item, i) => (
-                      <span key={i} style={{ color:'var(--text-secondary)', fontSize:'.72rem', flexShrink:0 }}>
-                        <span style={{ color:'var(--gold)', fontWeight:700 }}>●</span> {item}
-                      </span>
-                    ))
-                  )}
-                </div>
+          {/* TICKER */}
+          <div style={{ height:30, background:'#050510', borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', overflow:'hidden', flexShrink:0 }}>
+            <div style={{ background:'#ef4444', color:'#fff', fontSize:'.6rem', fontWeight:800, padding:'.2rem .5rem', whiteSpace:'nowrap', flexShrink:0, letterSpacing:'.05em' }}>SON DAKİKA</div>
+            <div style={{ overflow:'hidden', flex:1 }}>
+              <div style={{ display:'inline-flex', gap:'4rem', animation:'tickerMove 25s linear infinite', whiteSpace:'nowrap' }}>
+                {[...tickerItems, ...tickerItems].map((item, i) => (
+                  <span key={i} style={{ color:'#a0a0c0', fontSize:'.68rem' }}>
+                    <span style={{ color:'#fbbf24', marginRight:'.3rem' }}>●</span>{item}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* SAĞ: Kadro */}
+        {/* SAĞ: KADRO */}
         <div style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
-          <div style={{ padding:'1rem', borderBottom:'1px solid var(--border)' }}>
-            <div style={{ fontWeight:800, fontSize:'.95rem', marginBottom:'.2rem' }}>{myTeamName}</div>
-            <div style={{ color:'var(--text-muted)', fontSize:'.75rem' }}>{myPicks.length}/18 oyuncu seçildi</div>
+          <div style={{ padding:'.75rem 1rem', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
+            <div style={{ fontWeight:800, fontSize:'.9rem' }}>{myTeamName}</div>
+            <div style={{ color:'#606080', fontSize:'.72rem' }}>{myPicks.length}/18 seçildi</div>
           </div>
 
           <div style={{ flex:1, overflowY:'auto', padding:'.5rem' }}>
-            {/* İlk 11 */}
-            <div style={{ fontSize:'.65rem', color:'var(--text-muted)', fontWeight:700, letterSpacing:'.08em', padding:'.3rem .5rem', marginBottom:'.25rem' }}>İLK 11</div>
-            {myPicks.slice(0,11).map((pick, i) => (
-              <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.4rem', padding:'.4rem .6rem', borderRadius:8, marginBottom:'.25rem', background:'var(--bg-card)', border:'1px solid var(--border)' }}>
-                <span style={{ background:getPosColor(pick.squad_position||pick.player_cards?.position).color, color:getPosColor(pick.squad_position||pick.player_cards?.position).textColor, fontSize:'.6rem', fontWeight:700, padding:'.15rem .35rem', borderRadius:4, minWidth:32, textAlign:'center', flexShrink:0 }}>{pick.squad_position||pick.player_cards?.position}</span>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:700, fontSize:'.78rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pick.player_cards?.name}</div>
+            <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', marginBottom:'.2rem' }}>İLK 11</div>
+            {myPicks.slice(0,11).map(pick => {
+              const ps = getPosStyle(pick.squad_position || pick.player_cards?.position)
+              return (
+                <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#12122a', border:'1px solid #1e1e4a' }}>
+                  <span style={{ background:ps.color, color:ps.textColor, fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{pick.squad_position}</span>
+                  <div style={{ flex:1, minWidth:0, fontWeight:700, fontSize:'.75rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{pick.player_cards?.name}</div>
+                  <div style={{ fontWeight:800, color:'#fbbf24', fontSize:'.8rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
                 </div>
-                <div style={{ fontWeight:800, color:'var(--gold)', fontSize:'.85rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
-              </div>
-            ))}
+              )
+            })}
 
-            {/* Yedekler */}
-            {myPicks.length > 11 && (
-              <>
-                <div style={{ fontSize:'.65rem', color:'var(--text-muted)', fontWeight:700, letterSpacing:'.08em', padding:'.3rem .5rem', margin:'.5rem 0 .25rem' }}>YEDEKLER</div>
-                {myPicks.slice(11).map((pick, i) => (
-                  <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.4rem', padding:'.4rem .6rem', borderRadius:8, marginBottom:'.25rem', background:'rgba(30,30,60,.5)', border:'1px solid var(--border)' }}>
-                    <span style={{ background:getPosColor(pick.squad_position||pick.player_cards?.position).color, color:getPosColor(pick.squad_position||pick.player_cards?.position).textColor, fontSize:'.6rem', fontWeight:700, padding:'.15rem .35rem', borderRadius:4, minWidth:32, textAlign:'center', flexShrink:0 }}>{pick.squad_position||pick.player_cards?.position}</span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:600, fontSize:'.78rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:'var(--text-secondary)' }}>{pick.player_cards?.name}</div>
-                    </div>
-                    <div style={{ fontWeight:700, color:'var(--text-secondary)', fontSize:'.82rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
+            {myPicks.length > 11 && <>
+              <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', margin:'.4rem 0 .2rem' }}>YEDEKLER</div>
+              {myPicks.slice(11).map(pick => {
+                const ps = getPosStyle(pick.squad_position || pick.player_cards?.position)
+                return (
+                  <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'rgba(18,18,42,.5)', border:'1px solid #1e1e4a' }}>
+                    <span style={{ background:ps.color, color:ps.textColor, fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{pick.squad_position}</span>
+                    <div style={{ flex:1, minWidth:0, fontWeight:600, fontSize:'.75rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:'#a0a0c0' }}>{pick.player_cards?.name}</div>
+                    <div style={{ fontWeight:700, color:'#a0a0c0', fontSize:'.78rem', flexShrink:0 }}>{pick.player_cards?.overall}</div>
                   </div>
-                ))}
-              </>
-            )}
+                )
+              })}
+            </>}
 
-            {/* Boş slotlar */}
             {Array.from({ length: Math.max(0, 18 - myPicks.length) }).map((_, i) => (
-              <div key={'empty-'+i} style={{ display:'flex', alignItems:'center', gap:'.4rem', padding:'.4rem .6rem', borderRadius:8, marginBottom:'.25rem', background:'var(--bg-secondary)', border:'1px dashed var(--border)', opacity:.5 }}>
-                <div style={{ width:32, height:18, background:'var(--border)', borderRadius:4 }}></div>
-                <div style={{ color:'var(--text-muted)', fontSize:'.75rem' }}>{i + myPicks.length < 11 ? 'İlk 11 slotu' : 'Yedek slotu'}</div>
+              <div key={'e'+i} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#0f0f2a', border:'1px dashed #1e1e4a', opacity:.4 }}>
+                <div style={{ width:30, height:16, background:'#1e1e4a', borderRadius:3, flexShrink:0 }} />
+                <div style={{ color:'#606080', fontSize:'.72rem' }}>{i + myPicks.length < 11 ? 'İlk 11 slotu' : 'Yedek slotu'}</div>
               </div>
             ))}
           </div>
 
-          {/* Bitir */}
-          <div style={{ padding:'1rem', borderTop:'1px solid var(--border)' }}>
-            {myFinished ? (
-              <button className="btn btn-success" style={{ width:'100%' }} onClick={handleFinish}>MAÇA BAŞLA →</button>
-            ) : (
-              <button className="btn btn-primary" style={{ width:'100%', opacity:.4 }} disabled>
-                {myPicks.length}/18 Seçildi
-              </button>
-            )}
+          <div style={{ padding:'.75rem', borderTop:'1px solid var(--border)', flexShrink:0 }}>
+            <button
+              onClick={handleFinish}
+              disabled={!myFinished}
+              style={{ width:'100%', padding:'.75rem', borderRadius:10, border:'none', background: myFinished ? '#10b981' : '#1e1e4a', color: myFinished ? '#fff' : '#606080', fontWeight:700, fontSize:'.9rem', cursor: myFinished ? 'pointer' : 'not-allowed', transition:'all .2s' }}
+            >
+              {myFinished ? 'MAÇA BAŞLA →' : `${myPicks.length}/18 seçildi`}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* MEVKİ SEÇİM MODALI */}
-      {showPosModal && selectedCard && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.8)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-          <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:16, padding:'1.5rem', width:'100%', maxWidth:420 }}>
-            <div style={{ fontWeight:800, fontSize:'1.1rem', marginBottom:'.25rem' }}>{selectedCard.name}</div>
-            <div style={{ color:'var(--text-muted)', fontSize:'.8rem', marginBottom:'1.25rem' }}>Hangi mevkiye oynayacak?</div>
-
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.75rem', marginBottom:'1.25rem' }}>
-              {Object.entries(CATEGORIES).map(([cat, val]) => (
-                <div key={cat}>
-                  <div style={{ fontSize:'.65rem', fontWeight:700, color:val.textColor, letterSpacing:'.06em', marginBottom:'.35rem', textTransform:'uppercase' }}>{cat}</div>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:'.3rem' }}>
-                    {val.positions.map(pos => (
-                      <button key={pos} onClick={() => setSelectedPos(pos)} style={{ background: selectedPos===pos ? val.color : 'var(--bg-secondary)', border:`1px solid ${selectedPos===pos ? val.textColor : 'var(--border)'}`, color: selectedPos===pos ? val.textColor : 'var(--text-secondary)', padding:'.3rem .6rem', borderRadius:6, fontSize:'.75rem', fontWeight:700, cursor:'pointer', transition:'all .15s' }}>
-                        {pos}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+      {/* MEVKİ MODAL */}
+      {modalCard && (
+        <div
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}
+          onClick={e => { if(e.target === e.currentTarget) closeModal() }}
+        >
+          <div style={{ background:'#12122a', border:'1px solid #2a2a5a', borderRadius:16, padding:'1.5rem', width:'100%', maxWidth:440 }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Oyuncu Bilgisi */}
+            <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1.25rem', paddingBottom:'1rem', borderBottom:'1px solid #1e1e4a' }}>
+              <div style={{ width:50, height:50, borderRadius:12, background:'#1e1e4a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', fontWeight:900, color:'#fbbf24' }}>{modalCard.overall}</div>
+              <div>
+                <div style={{ fontWeight:800, fontSize:'1rem' }}>{modalCard.name}</div>
+                <div style={{ color:'#606080', fontSize:'.8rem' }}>{modalCard.club} · {modalCard.nation}</div>
+                <div style={{ color:'#10b981', fontSize:'.75rem', fontWeight:700, marginTop:'.15rem' }}>€{(modalCard.market_value/1e6).toFixed(1)}M</div>
+              </div>
             </div>
 
-            <div style={{ display:'flex', gap:'.75rem' }}>
-              <button className="btn btn-secondary" style={{ flex:1 }} onClick={() => { setShowPosModal(false); setSelectedCard(null); setSelectedPos(null) }}>İptal</button>
-              <button className="btn btn-primary" style={{ flex:2, opacity: selectedPos ? 1 : .4 }} disabled={!selectedPos} onClick={handleConfirmPick}>
-                {selectedPos ? `${selectedCard.name} → ${selectedPos} ✓` : 'Mevki Seç'}
+            <div style={{ fontWeight:700, fontSize:'.85rem', color:'#a0a0c0', marginBottom:'1rem' }}>Bu oyuncu hangi mevkide oynayacak?</div>
+
+            {/* Mevki Seçenekleri */}
+            {Object.entries(CATEGORIES).map(([cat, val]) => (
+              <div key={cat} style={{ marginBottom:'.85rem' }}>
+                <div style={{ fontSize:'.62rem', color:val.textColor, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', marginBottom:'.35rem' }}>{cat}</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'.35rem' }}>
+                  {val.positions.map(pos => (
+                    <button key={pos}
+                      onClick={() => setModalPos(pos)}
+                      style={{ background: modalPos===pos ? val.color : '#0f0f2a', border:`1.5px solid ${modalPos===pos ? val.textColor : '#2a2a5a'}`, color: modalPos===pos ? val.textColor : '#606080', padding:'.35rem .7rem', borderRadius:7, fontSize:'.78rem', fontWeight:700, cursor:'pointer', transition:'all .15s' }}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Butonlar */}
+            <div style={{ display:'flex', gap:'.75rem', marginTop:'1.25rem' }}>
+              <button onClick={closeModal}
+                style={{ flex:1, padding:'.7rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:600, cursor:'pointer' }}>
+                İptal
+              </button>
+              <button onClick={confirmPick} disabled={!modalPos}
+                style={{ flex:2, padding:'.7rem', borderRadius:10, border:'none', background: modalPos ? '#7c3aed' : '#1e1e4a', color: modalPos ? '#fff' : '#606080', fontWeight:700, cursor: modalPos ? 'pointer' : 'not-allowed', transition:'all .2s', fontSize:'.88rem' }}>
+                {modalPos ? `✓ ${modalPos} olarak ekle` : 'Mevki seç'}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @keyframes pulse {
-          0%,100% { opacity:1; transform:scale(1); }
-          50% { opacity:.6; transform:scale(1.3); }
-        }
-      `}</style>
     </div>
   )
 }
