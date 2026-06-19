@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -9,10 +9,10 @@ function getUserId() {
 }
 
 const CATEGORIES = {
-  'Kaleci':    { positions: ['GK'], color: '#1e3a5f', textColor: '#60a5fa' },
-  'Defans':    { positions: ['CB','LB','RB'], color: '#1e4a2a', textColor: '#4ade80' },
-  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'], color: '#3a2a1e', textColor: '#fb923c' },
-  'Hücum':     { positions: ['LW','RW','ST','CF'], color: '#3a1e1e', textColor: '#f87171' },
+  'Kaleci':    { positions: ['GK'],                        color: '#1e3a5f', textColor: '#60a5fa' },
+  'Defans':    { positions: ['CB','LB','RB'],              color: '#1e4a2a', textColor: '#4ade80' },
+  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'],  color: '#3a2a1e', textColor: '#fb923c' },
+  'Hücum':     { positions: ['LW','RW','ST','CF'],         color: '#3a1e1e', textColor: '#f87171' },
 }
 
 function getPosStyle(pos) {
@@ -38,16 +38,16 @@ export default function DraftPage() {
   const [search, setSearch] = useState('')
   const [currentTurnUserId, setCurrentTurnUserId] = useState(null)
   const [tickerItems, setTickerItems] = useState(['Draft başladı! Oyuncular seçiliyor...'])
-
-  // Modal state
   const [modalCard, setModalCard] = useState(null)
   const [modalPos, setModalPos] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const channelRef = useRef(null)
   const prevOpPickCount = useRef(0)
+  const picksRef = useRef([])
+  const lobbyPlayersRef = useRef([])
 
   const myPicks = picks.filter(p => p.picked_by === userId)
-  const opPicks = picks.filter(p => p.picked_by !== userId)
   const isMyTurn = currentTurnUserId === userId
   const myFinished = myPicks.length >= 18
   const budget = lobby ? lobby.budget - myPicks.reduce((s,p) => s + (p.price||0), 0) : 0
@@ -64,6 +64,7 @@ export default function DraftPage() {
 
     const { data: pl } = await supabase.from('lobby_players').select('*').eq('lobby_id', lb.id).order('joined_at')
     setLobbyPlayers(pl || [])
+    lobbyPlayersRef.current = pl || []
 
     const { data: cr } = await supabase.from('player_cards').select('*').order('overall', { ascending: false })
     setAllCards(cr || [])
@@ -72,8 +73,16 @@ export default function DraftPage() {
     setLoading(false)
 
     channelRef.current = supabase.channel('draft-' + lb.id)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `lobby_id=eq.${lb.id}` }, () => loadPicks(lb.id, pl || []))
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lb.id}` }, async (p) => {
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'draft_picks',
+        filter: `lobby_id=eq.${lb.id}`
+      }, () => {
+        loadPicks(lb.id, lobbyPlayersRef.current)
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'lobbies',
+        filter: `id=eq.${lb.id}`
+      }, async (p) => {
         if (p.new.status === 'playing') {
           const { data } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).single()
           if (data) navigate(`/match/${data.id}`)
@@ -90,77 +99,108 @@ export default function DraftPage() {
     return players[cycle - 1 - pos].user_id
   }
 
-  const loadPicks = async (lobbyId, players) => {
+  const loadPicks = useCallback(async (lobbyId, players) => {
     const { data } = await supabase
       .from('draft_picks')
       .select('*, player_cards(*)')
       .eq('lobby_id', lobbyId)
       .order('pick_order')
     if (!data) return
+
+    picksRef.current = data
     setPicks(data)
 
-    const pl = players.length > 0 ? players : lobbyPlayers
+    const pl = players?.length > 0 ? players : lobbyPlayersRef.current
     setCurrentTurnUserId(calcTurn(data.length, pl))
 
-    // Yeni rakip seçimini ticker'a ekle
     const newOpPicks = data.filter(p => p.picked_by !== userId)
     if (newOpPicks.length > prevOpPickCount.current) {
       const newest = newOpPicks[newOpPicks.length - 1]
       if (newest?.player_cards) {
         const label = TICKER_MSGS[Math.floor(Math.random() * TICKER_MSGS.length)]
-        const msg = `${label}: ${newest.player_cards.name} (${newest.player_cards.overall}) → ${newest.squad_position} mevkiine transfer oldu!`
-        setTickerItems(prev => [...prev, msg])
+        setTickerItems(prev => [...prev, `${label}: ${newest.player_cards.name} (${newest.player_cards.overall}) → ${newest.squad_position}`])
       }
       prevOpPickCount.current = newOpPicks.length
     }
-  }
+  }, [userId])
 
-  // Karta tıklayınca modal aç
   const openModal = (card) => {
-    if (!isMyTurn || myFinished) return
-    const pickedIds = picks.map(p => p.player_card_id)
+    if (!isMyTurn || myFinished || submitting) return
+    const pickedIds = picksRef.current.map(p => p.player_card_id)
     if (pickedIds.includes(card.id)) return
     setModalCard(card)
     setModalPos(null)
   }
 
   const closeModal = () => {
+    if (submitting) return
     setModalCard(null)
     setModalPos(null)
   }
 
   const confirmPick = async () => {
-    if (!modalCard || !modalPos) return
+    if (!modalCard || !modalPos || submitting) return
+
+    // Çift tıklama koruması
+    setSubmitting(true)
+
+    // Zaten seçildi mi kontrol et
+    const pickedIds = picksRef.current.map(p => p.player_card_id)
+    if (pickedIds.includes(modalCard.id)) {
+      setSubmitting(false)
+      closeModal()
+      return
+    }
+
+    const myCurrentPicks = picksRef.current.filter(p => p.picked_by === userId)
+
     const { error } = await supabase.from('draft_picks').insert({
       lobby_id: lobby.id,
       player_card_id: modalCard.id,
       picked_by: userId,
-      round: myPicks.length + 1,
-      pick_order: picks.length + 1,
+      round: myCurrentPicks.length + 1,
+      pick_order: picksRef.current.length + 1,
       price: modalCard.market_value,
       squad_position: modalPos,
     })
-    if (error) { alert('Hata: ' + error.message); return }
-    closeModal()
+
+    if (error) {
+      if (error.code === '23505') {
+        // Unique constraint — zaten eklendi, sessizce kapat
+        closeModal()
+      } else {
+        alert('Hata: ' + error.message)
+      }
+    } else {
+      closeModal()
+    }
+
+    setSubmitting(false)
   }
 
   const handleFinish = async () => {
-    if (myPicks.length < 18) return
-    const lineup = myPicks.slice(0, 11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
-    const bench = myPicks.slice(11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
-    const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lobby.id).eq('user_id', userId).single()
-    const squadData = { lobby_id: lobby.id, user_id: userId, formation: lobby.formation, lineup, bench }
-    if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
-    else await supabase.from('squads').insert(squadData)
+    if (myPicks.length < 18 || submitting) return
+    setSubmitting(true)
+    try {
+      const lineup = myPicks.slice(0, 11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
+      const bench  = myPicks.slice(11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
 
-    const { data: allSquads } = await supabase.from('squads').select('*').eq('lobby_id', lobby.id)
-    if (allSquads && allSquads.length >= lobbyPlayers.length) {
-      const home = lobbyPlayers[0], away = lobbyPlayers[1]
-      const { data: match } = await supabase.from('matches').insert({
-        lobby_id: lobby.id, home_user_id: home.user_id, away_user_id: away.user_id, status: 'active'
-      }).select().single()
-      await supabase.from('lobbies').update({ status: 'playing' }).eq('id', lobby.id)
-      if (match) navigate(`/match/${match.id}`)
+      const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lobby.id).eq('user_id', userId).single()
+      const squadData = { lobby_id: lobby.id, user_id: userId, formation: lobby.formation, lineup, bench }
+      if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
+      else     await supabase.from('squads').insert(squadData)
+
+      const { data: allSquads } = await supabase.from('squads').select('*').eq('lobby_id', lobby.id)
+      if (allSquads && allSquads.length >= lobbyPlayers.length) {
+        const home = lobbyPlayers[0], away = lobbyPlayers[1]
+        const { data: match } = await supabase.from('matches').insert({
+          lobby_id: lobby.id, home_user_id: home.user_id, away_user_id: away.user_id, status: 'active'
+        }).select().single()
+        await supabase.from('lobbies').update({ status: 'playing' }).eq('id', lobby.id)
+        if (match) navigate(`/match/${match.id}`)
+      }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -174,7 +214,7 @@ export default function DraftPage() {
   })
 
   const myTeamName = lobbyPlayers.find(p => p.user_id === userId)?.team_name || 'Kadrom'
-  const turnName = lobbyPlayers.find(p => p.user_id === currentTurnUserId)?.team_name || '...'
+  const turnName   = lobbyPlayers.find(p => p.user_id === currentTurnUserId)?.team_name || '...'
 
   if (loading) return (
     <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -185,20 +225,20 @@ export default function DraftPage() {
   return (
     <div style={{ height:'100vh', background:'var(--bg-primary)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
       <style>{`
-        @keyframes tickerMove { from { transform:translateX(0) } to { transform:translateX(-50%) } }
+        @keyframes tickerMove { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
       `}</style>
 
       {/* SIRA BAR */}
-      <div style={{ padding:'.6rem 1.5rem', background: isMyTurn ? 'rgba(124,58,237,.25)' : 'rgba(20,20,50,.8)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ padding:'.6rem 1.5rem', background:isMyTurn?'rgba(124,58,237,.25)':'rgba(20,20,50,.8)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
-          <div style={{ width:10, height:10, borderRadius:'50%', background: isMyTurn ? '#10b981' : '#f59e0b', animation: isMyTurn ? 'blink 1s infinite' : 'none' }} />
-          <span style={{ fontWeight:700, fontSize:'.9rem', color: isMyTurn ? '#a78bfa' : '#a0a0c0' }}>
+          <div style={{ width:10, height:10, borderRadius:'50%', background:isMyTurn?'#10b981':'#f59e0b', animation:isMyTurn?'blink 1s infinite':'none' }}/>
+          <span style={{ fontWeight:700, fontSize:'.9rem', color:isMyTurn?'#a78bfa':'#a0a0c0' }}>
             {isMyTurn ? '⚡ Sıra sende! Bir oyuncu seç.' : `⏳ ${turnName} seçiyor, bekliyorsun...`}
           </span>
         </div>
-        <div style={{ display:'flex', gap:'1.5rem', fontSize:'.8rem', color:'var(--text-muted)' }}>
-          <span>Pick <strong style={{ color:'#fff' }}>{picks.length + 1}/36</strong></span>
+        <div style={{ display:'flex', gap:'1.5rem', fontSize:'.8rem', color:'#606080' }}>
+          <span>Pick <strong style={{ color:'#fff' }}>{picks.length+1}/36</strong></span>
           <span>Bütçe <strong style={{ color:'#10b981' }}>€{(budget/1e6).toFixed(0)}M</strong></span>
           <span>Seçilen <strong style={{ color:'#fff' }}>{myPicks.length}/18</strong></span>
         </div>
@@ -210,9 +250,9 @@ export default function DraftPage() {
         {/* SOL */}
         <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', borderRight:'1px solid var(--border)', position:'relative' }}>
 
-          {/* KİLİT */}
+          {/* KİLİT OVERLAY */}
           {!isMyTurn && (
-            <div style={{ position:'absolute', inset:0, background:'rgba(10,10,26,.75)', zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem', backdropFilter:'blur(3px)' }}>
+            <div style={{ position:'absolute', inset:0, background:'rgba(10,10,26,.78)', zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem', backdropFilter:'blur(3px)', pointerEvents:'all' }}>
               <div style={{ fontSize:'4rem' }}>🔒</div>
               <div style={{ fontWeight:800, fontSize:'1.2rem', color:'#a0a0c0' }}>Rakip seçiyor...</div>
               <div style={{ color:'#606080', fontSize:'.9rem' }}>{turnName} kendi oyuncusunu seçiyor</div>
@@ -220,10 +260,10 @@ export default function DraftPage() {
           )}
 
           {/* KATEGORİ SEKMELERİ */}
-          <div style={{ display:'flex', background:'var(--bg-secondary)', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
+          <div style={{ display:'flex', background:'#0f0f2a', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {Object.entries(CATEGORIES).map(([cat, val]) => (
               <button key={cat} onClick={() => { setActiveCategory(cat); setSearch('') }}
-                style={{ flex:1, padding:'.7rem .4rem', border:'none', background:'transparent', color: activeCategory===cat ? val.textColor : '#606080', fontWeight:700, fontSize:'.76rem', cursor:'pointer', borderBottom: activeCategory===cat ? `2px solid ${val.textColor}` : '2px solid transparent', transition:'all .15s' }}>
+                style={{ flex:1, padding:'.7rem .4rem', border:'none', background:'transparent', color:activeCategory===cat?val.textColor:'#606080', fontWeight:700, fontSize:'.76rem', cursor:'pointer', borderBottom:activeCategory===cat?`2px solid ${val.textColor}`:'2px solid transparent', transition:'all .15s' }}>
                 {cat}
               </button>
             ))}
@@ -231,8 +271,7 @@ export default function DraftPage() {
 
           {/* ARAMA */}
           <div style={{ padding:'.6rem 1rem', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
-            <input className="input" placeholder={`${activeCategory} oyuncusu ara...`} value={search} onChange={e => setSearch(e.target.value)}
-              style={{ padding:'.45rem .75rem', fontSize:'.82rem' }} />
+            <input className="input" placeholder={`${activeCategory} ara...`} value={search} onChange={e=>setSearch(e.target.value)} style={{ padding:'.45rem .75rem', fontSize:'.82rem' }}/>
           </div>
 
           {/* KARTLAR */}
@@ -241,14 +280,13 @@ export default function DraftPage() {
               {filteredCards.map(card => {
                 const ps = getPosStyle(card.position)
                 return (
-                  <div key={card.id}
-                    onClick={() => openModal(card)}
-                    style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:10, padding:'.65rem', cursor: isMyTurn ? 'pointer' : 'not-allowed', transition:'border-color .15s, transform .1s', userSelect:'none' }}
+                  <div key={card.id} onClick={() => openModal(card)}
+                    style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:10, padding:'.65rem', cursor:isMyTurn?'pointer':'not-allowed', transition:'border-color .15s, transform .1s', userSelect:'none' }}
                     onMouseEnter={e => { if(isMyTurn) { e.currentTarget.style.borderColor='#7c3aed'; e.currentTarget.style.transform='translateY(-2px)' } }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor='#1e1e4a'; e.currentTarget.style.transform='translateY(0)' }}
                   >
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'.35rem' }}>
-                      <span style={{ fontSize:'1.6rem', fontWeight:900, color: card.overall>=85?'#fbbf24':card.overall>=75?'#fff':'#a0a0c0' }}>{card.overall}</span>
+                      <span style={{ fontSize:'1.6rem', fontWeight:900, color:card.overall>=85?'#fbbf24':card.overall>=75?'#fff':'#a0a0c0' }}>{card.overall}</span>
                       <span style={{ background:ps.color, color:ps.textColor, fontSize:'.6rem', fontWeight:700, padding:'.15rem .35rem', borderRadius:4 }}>{card.position}</span>
                     </div>
                     <div style={{ fontWeight:700, fontSize:'.82rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginBottom:'.1rem' }}>{card.name}</div>
@@ -321,21 +359,18 @@ export default function DraftPage() {
               })}
             </>}
 
-            {Array.from({ length: Math.max(0, 18 - myPicks.length) }).map((_, i) => (
+            {Array.from({ length: Math.max(0, 18-myPicks.length) }).map((_,i) => (
               <div key={'e'+i} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#0f0f2a', border:'1px dashed #1e1e4a', opacity:.4 }}>
-                <div style={{ width:30, height:16, background:'#1e1e4a', borderRadius:3, flexShrink:0 }} />
-                <div style={{ color:'#606080', fontSize:'.72rem' }}>{i + myPicks.length < 11 ? 'İlk 11 slotu' : 'Yedek slotu'}</div>
+                <div style={{ width:30, height:16, background:'#1e1e4a', borderRadius:3, flexShrink:0 }}/>
+                <div style={{ color:'#606080', fontSize:'.72rem' }}>{i+myPicks.length < 11 ? 'İlk 11 slotu' : 'Yedek slotu'}</div>
               </div>
             ))}
           </div>
 
           <div style={{ padding:'.75rem', borderTop:'1px solid var(--border)', flexShrink:0 }}>
-            <button
-              onClick={handleFinish}
-              disabled={!myFinished}
-              style={{ width:'100%', padding:'.75rem', borderRadius:10, border:'none', background: myFinished ? '#10b981' : '#1e1e4a', color: myFinished ? '#fff' : '#606080', fontWeight:700, fontSize:'.9rem', cursor: myFinished ? 'pointer' : 'not-allowed', transition:'all .2s' }}
-            >
-              {myFinished ? 'MAÇA BAŞLA →' : `${myPicks.length}/18 seçildi`}
+            <button onClick={handleFinish} disabled={!myFinished || submitting}
+              style={{ width:'100%', padding:'.75rem', borderRadius:10, border:'none', background:myFinished?'#10b981':'#1e1e4a', color:myFinished?'#fff':'#606080', fontWeight:700, fontSize:'.9rem', cursor:myFinished&&!submitting?'pointer':'not-allowed', transition:'all .2s' }}>
+              {myFinished ? (submitting ? 'Kaydediliyor...' : 'MAÇA BAŞLA →') : `${myPicks.length}/18 seçildi`}
             </button>
           </div>
         </div>
@@ -345,12 +380,11 @@ export default function DraftPage() {
       {modalCard && (
         <div
           style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}
-          onClick={e => { if(e.target === e.currentTarget) closeModal() }}
+          onClick={e => { if(e.target===e.currentTarget && !submitting) closeModal() }}
         >
           <div style={{ background:'#12122a', border:'1px solid #2a2a5a', borderRadius:16, padding:'1.5rem', width:'100%', maxWidth:440 }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Oyuncu Bilgisi */}
+            onClick={e => e.stopPropagation()}>
+
             <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1.25rem', paddingBottom:'1rem', borderBottom:'1px solid #1e1e4a' }}>
               <div style={{ width:50, height:50, borderRadius:12, background:'#1e1e4a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', fontWeight:900, color:'#fbbf24' }}>{modalCard.overall}</div>
               <div>
@@ -362,16 +396,13 @@ export default function DraftPage() {
 
             <div style={{ fontWeight:700, fontSize:'.85rem', color:'#a0a0c0', marginBottom:'1rem' }}>Bu oyuncu hangi mevkide oynayacak?</div>
 
-            {/* Mevki Seçenekleri */}
             {Object.entries(CATEGORIES).map(([cat, val]) => (
               <div key={cat} style={{ marginBottom:'.85rem' }}>
                 <div style={{ fontSize:'.62rem', color:val.textColor, fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', marginBottom:'.35rem' }}>{cat}</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'.35rem' }}>
                   {val.positions.map(pos => (
-                    <button key={pos}
-                      onClick={() => setModalPos(pos)}
-                      style={{ background: modalPos===pos ? val.color : '#0f0f2a', border:`1.5px solid ${modalPos===pos ? val.textColor : '#2a2a5a'}`, color: modalPos===pos ? val.textColor : '#606080', padding:'.35rem .7rem', borderRadius:7, fontSize:'.78rem', fontWeight:700, cursor:'pointer', transition:'all .15s' }}
-                    >
+                    <button key={pos} onClick={() => setModalPos(pos)}
+                      style={{ background:modalPos===pos?val.color:'#0f0f2a', border:`1.5px solid ${modalPos===pos?val.textColor:'#2a2a5a'}`, color:modalPos===pos?val.textColor:'#606080', padding:'.35rem .7rem', borderRadius:7, fontSize:'.78rem', fontWeight:700, cursor:'pointer', transition:'all .15s' }}>
                       {pos}
                     </button>
                   ))}
@@ -379,15 +410,14 @@ export default function DraftPage() {
               </div>
             ))}
 
-            {/* Butonlar */}
             <div style={{ display:'flex', gap:'.75rem', marginTop:'1.25rem' }}>
-              <button onClick={closeModal}
-                style={{ flex:1, padding:'.7rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:600, cursor:'pointer' }}>
+              <button onClick={closeModal} disabled={submitting}
+                style={{ flex:1, padding:'.7rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:600, cursor:submitting?'not-allowed':'pointer' }}>
                 İptal
               </button>
-              <button onClick={confirmPick} disabled={!modalPos}
-                style={{ flex:2, padding:'.7rem', borderRadius:10, border:'none', background: modalPos ? '#7c3aed' : '#1e1e4a', color: modalPos ? '#fff' : '#606080', fontWeight:700, cursor: modalPos ? 'pointer' : 'not-allowed', transition:'all .2s', fontSize:'.88rem' }}>
-                {modalPos ? `✓ ${modalPos} olarak ekle` : 'Mevki seç'}
+              <button onClick={confirmPick} disabled={!modalPos || submitting}
+                style={{ flex:2, padding:'.7rem', borderRadius:10, border:'none', background:modalPos&&!submitting?'#7c3aed':'#1e1e4a', color:modalPos&&!submitting?'#fff':'#606080', fontWeight:700, cursor:modalPos&&!submitting?'pointer':'not-allowed', transition:'all .2s', fontSize:'.88rem' }}>
+                {submitting ? 'Ekleniyor...' : modalPos ? `✓ ${modalPos} olarak ekle` : 'Mevki seç'}
               </button>
             </div>
           </div>
