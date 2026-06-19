@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { PLAYER_CARDS } from '../lib/playerCards'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { PLAYER_CARDS } from '../lib/playerCards'
 
 function getUserId() {
   let id = localStorage.getItem('draft_user_id')
@@ -66,15 +66,15 @@ export default function DraftPage() {
       .order('pick_order')
     if (error || !data) return
 
+    // Lokal player_cards verisiyle zenginleştir
     const enriched = data.map(pick => ({
       ...pick,
       player_cards: PLAYER_CARDS.find(c => c.id === pick.player_card_id)
     }))
-
     setPicks(enriched)
-    setCurrentTurnUserId(calcTurn(enriched.length, lobbyPlayersRef.current))
+    setCurrentTurnUserId(calcTurn(data.length, lobbyPlayersRef.current))
 
-    const newOpPicks = enriched.filter(p => p.picked_by !== userId)
+    const newOpPicks = data.filter(p => p.picked_by !== userId)
     if (newOpPicks.length > prevOpPickCount.current) {
       const newest = newOpPicks[newOpPicks.length - 1]
       if (newest?.player_cards) {
@@ -87,16 +87,21 @@ export default function DraftPage() {
 
   useEffect(() => {
     init()
-    return () => { if (channelRef.current) supabase.removeChannel(channelRef.current) }
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current)
+    }
   }, [code])
 
+  // 2 saniyede bir polling
   useEffect(() => {
-    const interval = setInterval(() => { loadPicks() }, 2000)
+    const interval = setInterval(() => {
+      loadPicks()
+    }, 2000)
     return () => clearInterval(interval)
   }, [loadPicks])
 
   const init = async () => {
-    const { data: lb } = await supabase.from('lobbies').select('*').ilike('code', code).maybeSingle()
+    const { data: lb } = await supabase.from('lobbies').select('*').ilike('code', code).single()
     if (!lb) return
     setLobby(lb)
     lobbyRef.current = lb
@@ -106,17 +111,27 @@ export default function DraftPage() {
     setLobbyPlayers(pl || [])
     lobbyPlayersRef.current = pl || []
 
-    setAllCards([...PLAYER_CARDS].sort((a, b) => b.overall - a.overall))
+    // Lokal oyuncu kartlarını yükle
+    setAllCards([...PLAYER_CARDS].sort((a,b) => b.overall - a.overall))
+
+
 
     await loadPicks()
     setLoading(false)
 
     channelRef.current = supabase
       .channel('draft-' + lb.id)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `lobby_id=eq.${lb.id}` }, () => loadPicks())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lb.id}` }, async (p) => {
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'draft_picks',
+        filter: `lobby_id=eq.${lb.id}`
+      }, () => loadPicks())
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'lobbies',
+        filter: `id=eq.${lb.id}`
+      }, async (p) => {
         if (p.new.status === 'playing') {
-          navigate(`/game/${code}`)
+          const { data } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
+          if (data) navigate(`/game/${lobby?.code}`)
         }
       })
       .subscribe()
@@ -129,7 +144,7 @@ export default function DraftPage() {
     ? lobbyRef.current.budget - myPicks.reduce((s, p) => s + (p.price || 0), 0)
     : 0
 
-  const handleCardClick = async (card) => {
+  const openModal = async (card) => {
     if (!isMyTurn || myFinished || submitting) return
     setSubmitting(true)
     setErrorMsg('')
@@ -140,7 +155,8 @@ export default function DraftPage() {
         .select('player_card_id, picked_by')
         .eq('lobby_id', lb.id)
 
-      if (freshPicks?.find(p => p.player_card_id === card.id)) {
+      const alreadyPicked = freshPicks?.find(p => p.player_card_id === card.id)
+      if (alreadyPicked) {
         await loadPicks()
         return
       }
@@ -169,6 +185,8 @@ export default function DraftPage() {
     }
   }
 
+  const closeModal = () => {}
+
   const handleFinish = async () => {
     if (myPicks.length < 18 || submitting) return
     setSubmitting(true)
@@ -184,10 +202,16 @@ export default function DraftPage() {
 
       const { data: allSquads } = await supabase.from('squads').select('*').eq('lobby_id', lb.id)
       if (allSquads && allSquads.length >= lobbyPlayersRef.current.length) {
+        const home = lobbyPlayersRef.current[0]
+        const away = lobbyPlayersRef.current[1]
+        const { data: match } = await supabase.from('matches').insert({
+          lobby_id: lb.id,
+          home_user_id: home.user_id,
+          away_user_id: away.user_id,
+          status: 'active'
+        }).select().single()
         await supabase.from('lobbies').update({ status: 'playing' }).eq('id', lb.id)
-        navigate(`/game/${code}`)
-      } else {
-        navigate(`/game/${code}`)
+        if (match) navigate(`/game/${lb.id}`)
       }
     } finally {
       setSubmitting(false)
@@ -196,6 +220,7 @@ export default function DraftPage() {
 
   const pickedCardIds = picks.map(p => p.player_card_id)
   const catPositions = CATEGORIES[activeCategory]?.positions || []
+  console.log('DEBUG:', { activeCategory, catPositions, totalCards: allCards.length, pickedIds: pickedCardIds.length })
   const filteredCards = allCards.filter(c => {
     if (pickedCardIds.includes(c.id)) return false
     if (!catPositions.includes(c.position)) return false
@@ -224,7 +249,7 @@ export default function DraftPage() {
         <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
           <div style={{ width:10, height:10, borderRadius:'50%', background:isMyTurn?'#10b981':'#f59e0b', animation:isMyTurn?'blink 1s infinite':'none' }}/>
           <span style={{ fontWeight:700, fontSize:'.9rem', color:isMyTurn?'#a78bfa':'#a0a0c0' }}>
-            {isMyTurn ? '⚡ Sıra sende! Tıkla, direkt ekle.' : `⏳ ${turnName} seçiyor...`}
+            {isMyTurn ? '⚡ Sıra sende!' : `⏳ ${turnName} seçiyor...`}
           </span>
         </div>
         <div style={{ display:'flex', gap:'1.5rem', fontSize:'.8rem', color:'#606080' }}>
@@ -239,7 +264,6 @@ export default function DraftPage() {
 
         {/* SOL */}
         <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', borderRight:'1px solid #1e1e4a', position:'relative' }}>
-
           {!isMyTurn && (
             <div style={{ position:'absolute', inset:0, background:'rgba(10,10,26,.78)', zIndex:20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem', backdropFilter:'blur(3px)' }}>
               <div style={{ fontSize:'4rem' }}>🔒</div>
@@ -263,19 +287,14 @@ export default function DraftPage() {
           </div>
 
           <div style={{ flex:1, overflowY:'auto', padding:'.75rem' }}>
-            {errorMsg && (
-              <div style={{ background:'rgba(239,68,68,.1)', border:'1px solid #ef4444', borderRadius:8, padding:'.5rem .75rem', marginBottom:'.75rem', color:'#ef4444', fontSize:'.8rem' }}>
-                {errorMsg}
-              </div>
-            )}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))', gap:'.5rem' }}>
               {filteredCards.map(card => {
                 const ps = getPosStyle(card.position)
                 return (
                   <div key={card.id}
-                    onClick={() => handleCardClick(card)}
-                    style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:10, padding:'.65rem', cursor:isMyTurn&&!submitting?'pointer':'not-allowed', userSelect:'none', transition:'border-color .15s', opacity:submitting?.7:1 }}
-                    onMouseEnter={e => { if(isMyTurn&&!submitting) e.currentTarget.style.borderColor='#7c3aed' }}
+                    onClick={() => openModal(card)}
+                    style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:10, padding:'.65rem', cursor:isMyTurn?'pointer':'not-allowed', userSelect:'none', transition:'border-color .15s' }}
+                    onMouseEnter={e => { if(isMyTurn) e.currentTarget.style.borderColor='#7c3aed' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor='#1e1e4a' }}
                   >
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'.35rem' }}>
@@ -321,13 +340,10 @@ export default function DraftPage() {
             <div style={{ fontWeight:800, fontSize:'.9rem' }}>{myTeamName}</div>
             <div style={{ color:'#606080', fontSize:'.72rem' }}>{myPicks.length}/18 seçildi</div>
           </div>
-
           <div style={{ flex:1, overflowY:'auto', padding:'.5rem' }}>
-            <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', marginBottom:'.3rem' }}>
-              SEÇİLEN OYUNCULAR
-            </div>
+            <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.08em', padding:'.25rem .4rem', marginBottom:'.3rem' }}>SEÇİLEN OYUNCULAR ({myPicks.length}/18)</div>
             {myPicks.map((pick, i) => {
-              const ps = getPosStyle(pick.player_cards?.position || pick.squad_position)
+              const ps = getPosStyle(pick.squad_position || pick.player_cards?.position)
               return (
                 <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#12122a', border:'1px solid #1e1e4a' }}>
                   <span style={{ color:'#606080', fontSize:'.6rem', fontWeight:700, minWidth:16, textAlign:'center', flexShrink:0 }}>{i+1}</span>
@@ -345,15 +361,15 @@ export default function DraftPage() {
               </div>
             ))}
           </div>
-
           <div style={{ padding:'.75rem', borderTop:'1px solid #1e1e4a', flexShrink:0 }}>
             <button onClick={handleFinish} disabled={!myFinished || submitting}
               style={{ width:'100%', padding:'.75rem', borderRadius:10, border:'none', background:myFinished?'#10b981':'#1e1e4a', color:myFinished?'#fff':'#606080', fontWeight:700, fontSize:'.9rem', cursor:myFinished&&!submitting?'pointer':'not-allowed' }}>
-              {myFinished ? (submitting?'Kaydediliyor...':'KADROYU ONAYLA →') : `${myPicks.length}/18 seçildi`}
+              {myFinished ? (submitting?'Kaydediliyor...':'MAÇA BAŞLA →') : `${myPicks.length}/18 seçildi`}
             </button>
           </div>
         </div>
       </div>
-    </div>
+
+
   )
 }
