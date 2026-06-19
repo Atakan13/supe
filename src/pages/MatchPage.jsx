@@ -94,17 +94,17 @@ export default function MatchPage() {
   }, [matchId])
 
   const init = async () => {
-    const { data: m } = await supabase.from('matches').select('*').eq('id', matchId).single()
+    const { data: m } = await supabase.from('matches').select('*').eq('id', matchId).maybeSingle()
     if (!m) return
     setMatch(m)
     setScores({ home: m.home_score, away: m.away_score })
 
-    const { data: lb } = await supabase.from('lobbies').select('*').eq('id', m.lobby_id).single()
+    const { data: lb } = await supabase.from('lobbies').select('*').eq('id', m.lobby_id).maybeSingle()
     setLobby(lb)
 
-    const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', userId).single()
+    const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', userId).maybeSingle()
     const opId = m.home_user_id === userId ? m.away_user_id : m.home_user_id
-    const { data: opS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', opId).single()
+    const { data: opS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', opId).maybeSingle()
 
     if (myS) setMySquad(myS.lineup || [])
     if (opS) setOpponentSquad(opS.lineup || [])
@@ -115,7 +115,7 @@ export default function MatchPage() {
     setLoading(false)
 
     // Host ise maç motorunu başlat
-    const { data: lp } = await supabase.from('lobby_players').select('*').eq('lobby_id', m.lobby_id).eq('user_id', userId).single()
+    const { data: lp } = await supabase.from('lobby_players').select('*').eq('lobby_id', m.lobby_id).eq('user_id', userId).maybeSingle()
     if (lp?.is_host && evs?.length === 0) {
       setTimeout(() => runMatchEngine(m, myS, opS), 1000)
     }
@@ -228,7 +228,7 @@ export default function MatchPage() {
         .eq('action_phase', 'pending')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (pendingEv) {
         await resolveEvent(pendingEv, m)
@@ -252,8 +252,8 @@ export default function MatchPage() {
 
     // Squad'lardan oyuncu bul
     const atkSquad = ev.attacking_user === (m?.home_user_id) ?
-      (await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', ev.attacking_user).single()).data?.lineup || [] :
-      (await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', ev.attacking_user).single()).data?.lineup || []
+      (await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', ev.attacking_user).maybeSingle()).data?.lineup || [] :
+      (await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', ev.attacking_user).maybeSingle()).data?.lineup || []
 
     const randomAtk = atkSquad[Math.floor(Math.random() * Math.min(3, atkSquad.length))]
     const atkStat_val = randomAtk ? (randomAtk[atkStat] || 70) : 70

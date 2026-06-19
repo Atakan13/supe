@@ -132,7 +132,7 @@ export default function DraftPage() {
         filter: `id=eq.${lb.id}`
       }, async (p) => {
         if (p.new.status === 'playing') {
-          const { data } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).single()
+          const { data } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
           if (data) navigate(`/match/${data.id}`)
         }
       })
@@ -220,7 +220,7 @@ export default function DraftPage() {
       const lineup = myPicks.slice(0, 11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
       const bench  = myPicks.slice(11).map(p => ({ ...p.player_cards, squad_pos: p.squad_position, pick_id: p.id }))
 
-      const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lb.id).eq('user_id', userId).single()
+      const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lb.id).eq('user_id', userId).maybeSingle()
       const squadData = { lobby_id: lb.id, user_id: userId, formation: lb.formation, lineup, bench }
       if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
       else await supabase.from('squads').insert(squadData)
