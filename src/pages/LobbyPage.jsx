@@ -9,6 +9,10 @@ export default function LobbyPage() {
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [needsJoin, setNeedsJoin] = useState(false)
+  const [joinName, setJoinName] = useState('')
+  const [joinTeam, setJoinTeam] = useState('')
+  const [joinError, setJoinError] = useState('')
   const lobbyIdRef = useRef(null)
   const channelRef = useRef(null)
 
@@ -37,33 +41,60 @@ export default function LobbyPage() {
     setLobby(data)
     lobbyIdRef.current = data.id
 
+    // Bu kullanıcı lobide kayıtlı mı?
+    const { data: existing } = await supabase
+      .from('lobby_players')
+      .select('*')
+      .eq('lobby_id', data.id)
+      .eq('user_id', userId)
+      .single()
+
+    if (!existing) {
+      // Kayıtlı değil, isim/takım sor
+      setNeedsJoin(true)
+      setLoading(false)
+      return
+    }
+
     await loadPlayers(data.id)
     setLoading(false)
+    setupRealtime(data.id)
+  }
 
-    // Önceki channel varsa temizle
+  const handleJoinLobby = async () => {
+    if (!joinName.trim() || !joinTeam.trim()) {
+      setJoinError('İsim ve takım adı gir')
+      return
+    }
+    localStorage.setItem('draft_user_name', joinName)
+    const { error: pe } = await supabase.from('lobby_players').insert({
+      lobby_id: lobby.id,
+      user_id: userId,
+      user_name: joinName,
+      team_name: joinTeam,
+      is_host: false,
+      is_ready: false,
+    })
+    if (pe) { setJoinError('Hata: ' + pe.message); return }
+    setNeedsJoin(false)
+    await loadPlayers(lobby.id)
+    setupRealtime(lobby.id)
+  }
+
+  const setupRealtime = (lobbyId) => {
     if (channelRef.current) supabase.removeChannel(channelRef.current)
-
-    // Yeni channel kur
     channelRef.current = supabase
-      .channel(`lobby-${data.id}`)
+      .channel('lobby-' + lobbyId)
       .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'lobby_players',
-        filter: `lobby_id=eq.${data.id}`,
-      }, () => {
-        loadPlayers(data.id)
-      })
+        event: '*', schema: 'public', table: 'lobby_players',
+        filter: `lobby_id=eq.${lobbyId}`,
+      }, () => loadPlayers(lobbyId))
       .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'lobbies',
-        filter: `id=eq.${data.id}`,
+        event: 'UPDATE', schema: 'public', table: 'lobbies',
+        filter: `id=eq.${lobbyId}`,
       }, (payload) => {
         setLobby(payload.new)
-        if (payload.new.status === 'drafting') {
-          navigate(`/draft/${code}`)
-        }
+        if (payload.new.status === 'drafting') navigate(`/draft/${code}`)
       })
       .subscribe()
   }
@@ -77,21 +108,17 @@ export default function LobbyPage() {
     if (data) setPlayers(data)
   }
 
-  // 3 saniyede bir otomatik yenile (realtime backup)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (lobbyIdRef.current) loadPlayers(lobbyIdRef.current)
+      if (lobbyIdRef.current && !needsJoin) loadPlayers(lobbyIdRef.current)
     }, 3000)
     return () => clearInterval(interval)
-  }, [])
+  }, [needsJoin])
 
   const handleReady = async () => {
     const me = players.find(p => p.user_id === userId)
     if (!me) return
-    await supabase
-      .from('lobby_players')
-      .update({ is_ready: !me.is_ready })
-      .eq('id', me.id)
+    await supabase.from('lobby_players').update({ is_ready: !me.is_ready }).eq('id', me.id)
     loadPlayers(lobbyIdRef.current)
   }
 
@@ -103,153 +130,129 @@ export default function LobbyPage() {
     navigate(`/draft/${code}`)
   }
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-  }
+  const copyLink = () => navigator.clipboard.writeText(window.location.href)
 
   const me = players.find(p => p.user_id === userId)
   const isHost = me?.is_host
   const allReady = players.length >= 2 && players.filter(p => !p.is_host).every(p => p.is_ready)
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: 'var(--text-secondary)' }}>Yükleniyor...</div>
+    <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ color:'var(--text-secondary)' }}>Yükleniyor...</div>
     </div>
   )
 
   if (error) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ color: 'var(--red)', fontSize: '1.1rem' }}>{error}</div>
+    <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:'1rem' }}>
+      <div style={{ color:'var(--red)', fontSize:'1.1rem' }}>{error}</div>
       <button className="btn btn-secondary" onClick={() => navigate('/')}>← Ana Menü</button>
     </div>
   )
 
-  return (
-    <div style={{
-      minHeight: '100vh', background: 'var(--bg-primary)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
-    }}>
-      <div style={{ width: '100%', maxWidth: '560px' }}>
-
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <p style={{ color: 'var(--purple-light)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            OYUN LOBİSİ
-          </p>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Takımını Kur ⚽</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Arkadaşını bekle, hazır olunca başla.</p>
+  // İsim/takım giriş ekranı
+  if (needsJoin) return (
+    <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem' }}>
+      <div style={{ width:'100%', maxWidth:'400px' }}>
+        <div style={{ textAlign:'center', marginBottom:'2rem' }}>
+          <p style={{ color:'var(--purple-light)', fontSize:'.7rem', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', marginBottom:'.5rem' }}>LOBİYE KATIL</p>
+          <h1 style={{ fontSize:'1.8rem', fontWeight:900, marginBottom:'.5rem' }}>⚽ {lobby?.code}</h1>
+          <p style={{ color:'var(--text-secondary)', fontSize:'.9rem' }}>Lobiye katılmak için bilgilerini gir.</p>
         </div>
-
-        <div className="card" style={{ textAlign: 'center', marginBottom: '1rem' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '0.5rem' }}>LOBİ KODU</p>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '0.3em', color: 'var(--purple-light)', marginBottom: '1rem' }}>
-            {lobby?.code}
-          </div>
-          <button className="btn btn-secondary" style={{ width: '100%' }} onClick={copyLink}>
-            🔗 Linki Kopyala
+        <div className="card" style={{ display:'flex', flexDirection:'column', gap:'.75rem' }}>
+          <input className="input" placeholder="Adın" value={joinName} onChange={e => setJoinName(e.target.value)} />
+          <input className="input" placeholder="Takım adın" value={joinTeam} onChange={e => setJoinTeam(e.target.value)} />
+          {joinError && <p style={{ color:'var(--red)', fontSize:'.8rem' }}>{joinError}</p>}
+          <button className="btn btn-primary" style={{ width:'100%', padding:'1rem' }} onClick={handleJoinLobby}>
+            KATIL →
+          </button>
+          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/')}>
+            ← Ana Menü
           </button>
         </div>
+      </div>
+    </div>
+  )
 
-        <div className="card" style={{ marginBottom: '1rem' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '1rem' }}>OYUN AYARLARI</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+  return (
+    <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem' }}>
+      <div style={{ width:'100%', maxWidth:'560px' }}>
+        <div style={{ textAlign:'center', marginBottom:'2rem' }}>
+          <p style={{ color:'var(--purple-light)', fontSize:'.7rem', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', marginBottom:'.5rem' }}>OYUN LOBİSİ</p>
+          <h1 style={{ fontSize:'2rem', fontWeight:900, marginBottom:'.5rem' }}>Takımını Kur ⚽</h1>
+          <p style={{ color:'var(--text-secondary)', fontSize:'.9rem' }}>Arkadaşını bekle, hazır olunca başla.</p>
+        </div>
+
+        <div className="card" style={{ textAlign:'center', marginBottom:'1rem' }}>
+          <p style={{ color:'var(--text-muted)', fontSize:'.75rem', fontWeight:600, letterSpacing:'.1em', marginBottom:'.5rem' }}>LOBİ KODU</p>
+          <div style={{ fontSize:'2.5rem', fontWeight:900, letterSpacing:'.3em', color:'var(--purple-light)', marginBottom:'1rem' }}>{lobby?.code}</div>
+          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={copyLink}>🔗 Linki Kopyala</button>
+        </div>
+
+        <div className="card" style={{ marginBottom:'1rem' }}>
+          <p style={{ color:'var(--text-muted)', fontSize:'.75rem', fontWeight:600, letterSpacing:'.1em', marginBottom:'1rem' }}>OYUN AYARLARI</p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.75rem' }}>
             {[
               ['Diziliş', lobby?.formation],
               ['Zorluk', lobby?.difficulty === 'easy' ? 'Kolay' : lobby?.difficulty === 'medium' ? 'Orta' : 'Zor'],
-              ['Bütçe', `€${(lobby?.budget / 1000000).toFixed(0)}M`],
+              ['Bütçe', `€${(lobby?.budget/1000000).toFixed(0)}M`],
               ['Yıldız Limit', `${lobby?.star_limit} ⭐`],
             ].map(([label, value]) => (
-              <div key={label} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '0.75rem' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', marginBottom: '0.25rem' }}>{label}</div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{value}</div>
+              <div key={label} style={{ background:'var(--bg-secondary)', borderRadius:10, padding:'.75rem' }}>
+                <div style={{ color:'var(--text-muted)', fontSize:'.7rem', fontWeight:600, letterSpacing:'.08em', marginBottom:'.25rem' }}>{label}</div>
+                <div style={{ fontWeight:700, fontSize:'.95rem' }}>{value}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="card" style={{ marginBottom: '1rem' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.1em', marginBottom: '1rem' }}>
+        <div className="card" style={{ marginBottom:'1rem' }}>
+          <p style={{ color:'var(--text-muted)', fontSize:'.75rem', fontWeight:600, letterSpacing:'.1em', marginBottom:'1rem' }}>
             OYUNCULAR ({players.length}/2)
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:'.5rem' }}>
             {players.map(p => (
-              <div key={p.id} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: 'var(--bg-secondary)', borderRadius: 10, padding: '0.75rem 1rem',
-                border: p.user_id === userId ? '1px solid var(--purple)' : '1px solid transparent',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 8,
-                    background: p.is_host ? 'var(--purple)' : 'var(--blue)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.9rem',
-                  }}>
+              <div key={p.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'var(--bg-secondary)', borderRadius:10, padding:'.75rem 1rem', border:`1px solid ${p.user_id===userId?'var(--purple)':'transparent'}` }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
+                  <div style={{ width:36, height:36, borderRadius:8, background:p.is_host?'var(--purple)':'var(--blue)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'.9rem' }}>
                     {p.user_name[0].toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                    <div style={{ fontWeight:700, fontSize:'.9rem' }}>
                       {p.user_name}
-                      {p.user_id === userId && <span style={{ color: 'var(--purple-light)', fontSize: '0.7rem', marginLeft: '0.4rem' }}>(sen)</span>}
+                      {p.user_id === userId && <span style={{ color:'var(--purple-light)', fontSize:'.7rem', marginLeft:'.4rem' }}>(sen)</span>}
                     </div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{p.team_name}</div>
+                    <div style={{ color:'var(--text-muted)', fontSize:'.75rem' }}>{p.team_name}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  {p.is_host && (
-                    <span style={{ background: 'rgba(124,58,237,0.2)', color: 'var(--purple-light)', fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: 6 }}>
-                      HOST
-                    </span>
-                  )}
-                  <span style={{
-                    fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: 6,
-                    background: p.is_ready || p.is_host ? 'rgba(16,185,129,0.2)' : 'rgba(100,100,100,0.2)',
-                    color: p.is_ready || p.is_host ? 'var(--green)' : 'var(--text-muted)',
-                  }}>
-                    {p.is_host ? 'HAZIR' : p.is_ready ? 'HAZIR' : 'BEKLİYOR'}
+                <div style={{ display:'flex', gap:'.5rem', alignItems:'center' }}>
+                  {p.is_host && <span style={{ background:'rgba(124,58,237,.2)', color:'var(--purple-light)', fontSize:'.65rem', fontWeight:700, padding:'.2rem .5rem', borderRadius:6 }}>HOST</span>}
+                  <span style={{ fontSize:'.65rem', fontWeight:700, padding:'.2rem .5rem', borderRadius:6, background:p.is_ready||p.is_host?'rgba(16,185,129,.2)':'rgba(100,100,100,.2)', color:p.is_ready||p.is_host?'var(--green)':'var(--text-muted)' }}>
+                    {p.is_host||p.is_ready?'HAZIR':'BEKLİYOR'}
                   </span>
                 </div>
               </div>
             ))}
-
             {players.length < 2 && (
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'var(--bg-secondary)', borderRadius: 10, padding: '1rem',
-                border: '1px dashed var(--border-light)', color: 'var(--text-muted)', fontSize: '0.85rem',
-              }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg-secondary)', borderRadius:10, padding:'1rem', border:'1px dashed var(--border-light)', color:'var(--text-muted)', fontSize:'.85rem' }}>
                 Arkadaşın bekleniyor...
               </div>
             )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {!isHost && (
-            <button
-              className={`btn ${me?.is_ready ? 'btn-danger' : 'btn-success'}`}
-              style={{ width: '100%', padding: '1rem' }}
-              onClick={handleReady}
-            >
-              {me?.is_ready ? '❌ Hazır Değilim' : '✅ Hazırım'}
+        <div style={{ display:'flex', flexDirection:'column', gap:'.75rem' }}>
+          {!isHost && me && (
+            <button className={`btn ${me.is_ready?'btn-danger':'btn-success'}`} style={{ width:'100%', padding:'1rem' }} onClick={handleReady}>
+              {me.is_ready ? '❌ Hazır Değilim' : '✅ Hazırım'}
             </button>
           )}
-
           {isHost && (
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '1rem', opacity: allReady ? 1 : 0.5 }}
-              onClick={handleStart}
-              disabled={!allReady}
-            >
+            <button className="btn btn-primary" style={{ width:'100%', padding:'1rem', opacity:allReady?1:.5 }} onClick={handleStart} disabled={!allReady}>
               {allReady ? '🚀 DRAFTI BAŞLAT' : players.length < 2 ? 'Oyuncu bekleniyor...' : 'Herkes hazır değil'}
             </button>
           )}
-
-          <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => navigate('/')}>
-            ← Menüye Dön
-          </button>
+          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/')}>← Menüye Dön</button>
         </div>
-
       </div>
     </div>
   )
