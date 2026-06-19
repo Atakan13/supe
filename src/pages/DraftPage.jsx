@@ -242,6 +242,7 @@ export default function DraftPage() {
 
   const pickedCardIds = picks.map(p => p.player_card_id)
   const catPositions = CATEGORIES[activeCategory]?.positions || []
+  console.log('DEBUG:', { activeCategory, catPositions, totalCards: allCards.length, pickedIds: pickedCardIds.length })
   const filteredCards = allCards.filter(c => {
     if (pickedCardIds.includes(c.id)) return false
     if (!catPositions.includes(c.position)) return false
