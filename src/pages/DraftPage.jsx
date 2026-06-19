@@ -133,7 +133,7 @@ export default function DraftPage() {
       }, async (p) => {
         if (p.new.status === 'playing') {
           const { data } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
-          if (data) navigate(`/match/${data.id}`)
+          if (data) navigate(`/game/${lobby?.code}`)
         }
       })
       .subscribe()
@@ -236,7 +236,7 @@ export default function DraftPage() {
           status: 'active'
         }).select().single()
         await supabase.from('lobbies').update({ status: 'playing' }).eq('id', lb.id)
-        if (match) navigate(`/match/${match.id}`)
+        if (match) navigate(`/game/${lb.id}`)
       }
     } finally {
       setSubmitting(false)
