@@ -10,10 +10,10 @@ function getUserId() {
 }
 
 const CATEGORIES = {
-  'Kaleci':    { positions: ['GK'],                       color: '#1e3a5f', textColor: '#60a5fa' },
-  'Defans':    { positions: ['CB','LB','RB'],             color: '#1e4a2a', textColor: '#4ade80' },
-  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'], color: '#3a2a1e', textColor: '#fb923c' },
-  'Hücum':     { positions: ['LW','RW','ST','CF'],        color: '#3a1e1e', textColor: '#f87171' },
+  'Kaleci':    { positions: ['GK'],                              color: '#1e3a5f', textColor: '#60a5fa' },
+  'Defans':    { positions: ['CB','LB','RB'],                    color: '#1e4a2a', textColor: '#4ade80' },
+  'Orta Saha': { positions: ['CDM','CM','CAM','LM','RM'],        color: '#3a2a1e', textColor: '#fb923c' },
+  'Hücum':     { positions: ['LW','RW','ST','CF','LM','RM'],     color: '#3a1e1e', textColor: '#f87171' },
 }
 
 function getPosStyle(pos) {
