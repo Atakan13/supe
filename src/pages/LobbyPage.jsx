@@ -140,7 +140,7 @@ export default function LobbyPage() {
     navigate(`/draft/${code}`)
   }
 
-  const copyLink = () => navigator.clipboard.writeText(window.location.href)
+  const copyLink = () => navigator.clipboard.writeText(window.location.origin + '/join/' + lobby?.code)
 
   const me = players.find(p => p.user_id === userId)
   const isHost = me?.is_host
