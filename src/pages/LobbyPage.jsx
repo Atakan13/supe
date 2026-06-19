@@ -2,9 +2,21 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+// Kullanıcı ID her zaman oluştur
+function getUserId() {
+  let id = localStorage.getItem('draft_user_id')
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem('draft_user_id', id)
+  }
+  return id
+}
+
 export default function LobbyPage() {
   const { code } = useParams()
   const navigate = useNavigate()
+  const userId = getUserId()
+
   const [lobby, setLobby] = useState(null)
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,8 +27,6 @@ export default function LobbyPage() {
   const [joinError, setJoinError] = useState('')
   const lobbyIdRef = useRef(null)
   const channelRef = useRef(null)
-
-  const userId = localStorage.getItem('draft_user_id')
 
   useEffect(() => {
     loadLobby()
@@ -41,7 +51,6 @@ export default function LobbyPage() {
     setLobby(data)
     lobbyIdRef.current = data.id
 
-    // Bu kullanıcı lobide kayıtlı mı?
     const { data: existing } = await supabase
       .from('lobby_players')
       .select('*')
@@ -50,7 +59,6 @@ export default function LobbyPage() {
       .single()
 
     if (!existing) {
-      // Kayıtlı değil, isim/takım sor
       setNeedsJoin(true)
       setLoading(false)
       return
@@ -67,14 +75,16 @@ export default function LobbyPage() {
       return
     }
     localStorage.setItem('draft_user_name', joinName)
+
     const { error: pe } = await supabase.from('lobby_players').insert({
       lobby_id: lobby.id,
       user_id: userId,
-      user_name: joinName,
-      team_name: joinTeam,
+      user_name: joinName.trim(),
+      team_name: joinTeam.trim(),
       is_host: false,
       is_ready: false,
     })
+
     if (pe) { setJoinError('Hata: ' + pe.message); return }
     setNeedsJoin(false)
     await loadPlayers(lobby.id)
@@ -149,7 +159,6 @@ export default function LobbyPage() {
     </div>
   )
 
-  // İsim/takım giriş ekranı
   if (needsJoin) return (
     <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem' }}>
       <div style={{ width:'100%', maxWidth:'400px' }}>
