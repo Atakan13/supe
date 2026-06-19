@@ -113,6 +113,9 @@ export default function DraftPage() {
     setLobbyPlayers(pl || [])
     lobbyPlayersRef.current = pl || []
 
+    // Lokal oyuncu kartlarını yükle
+    setAllCards([...PLAYER_CARDS].sort((a,b) => b.overall - a.overall))
+
 
 
     await loadPicks()
