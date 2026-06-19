@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getClub } from '../lib/club'
+import { PLAYER_CARDS } from '../lib/playerCards'
 
 function getUserId() {
   let id = localStorage.getItem('draft_user_id')
@@ -31,128 +32,29 @@ function LogoMini({ logo, size = 32 }) {
   )
 }
 
-// FM Taktikleri
 const TACTICS_CONFIG = {
-  pressing: {
-    label: 'PRES',
-    icon: '⚡',
-    options: [
-      { id: 'gegenpressing', name: 'Gegenpressing', desc: 'Top kaybedince anında yüksek pres', statBonus: { defending: 8, pace: 5 }, narrativeTag: 'agresif pres yapıyor' },
-      { id: 'high_press', name: 'Yüksek Pres', desc: 'Rakip sahada sürekli baskı', statBonus: { defending: 5, physical: 3 }, narrativeTag: 'yüksek pres uyguluyor' },
-      { id: 'mid_press', name: 'Orta Pres', desc: 'Dengeli baskı stratejisi', statBonus: { defending: 2 }, narrativeTag: 'dengeli pres yapıyor' },
-      { id: 'low_block', name: 'Alçak Blok', desc: 'Kendi yarısında kompakt savunma', statBonus: { defending: 10, shooting: -3 }, narrativeTag: 'alçak blok oynuyor' },
-    ]
-  },
-  tempo: {
-    label: 'TEMPO',
-    icon: '🏃',
-    options: [
-      { id: 'fast', name: 'Yüksek Tempo', desc: 'Hızlı geçiş ve çabuk oyun', statBonus: { pace: 8, passing: 3 }, narrativeTag: 'yüksek tempoda oynuyor' },
-      { id: 'normal', name: 'Normal Tempo', desc: 'Dengeli oyun temposu', statBonus: {}, narrativeTag: 'kontrollü oynuyor' },
-      { id: 'slow', name: 'Düşük Tempo', desc: 'Top tutma ve pozisyon oyunu', statBonus: { passing: 8, dribbling: 5 }, narrativeTag: 'topla oynuyor' },
-    ]
-  },
-  attack_width: {
-    label: 'HÜCUM GENİŞLİĞİ',
-    icon: '↔️',
-    options: [
-      { id: 'wide', name: 'Geniş Hücum', desc: 'Kanatları etkin kullan', statBonus: { dribbling: 6 }, narrativeTag: 'kanatlardan geliyor' },
-      { id: 'central', name: 'Ortadan Hücum', desc: 'Merkezi geçiş ve şut', statBonus: { shooting: 6, passing: 4 }, narrativeTag: 'ortadan yaratıyor' },
-      { id: 'mixed', name: 'Karma Hücum', desc: 'Hem kanat hem orta', statBonus: { passing: 3 }, narrativeTag: 'çeşitli bölgelerden hücum ediyor' },
-    ]
-  },
-  defense_line: {
-    label: 'SAVUNMA HATTI',
-    icon: '🛡️',
-    options: [
-      { id: 'high', name: 'Yüksek Hat', desc: 'Offside tuzağı, rakibe az alan', statBonus: { defending: 5, pace: -3 }, narrativeTag: 'yüksek savunma hattı tutuyor' },
-      { id: 'standard', name: 'Normal Hat', desc: 'Dengeli savunma pozisyonu', statBonus: { defending: 2 }, narrativeTag: 'standart hat tutuyor' },
-      { id: 'deep', name: 'Alçak Hat', desc: 'Derin savunma, kompakt blok', statBonus: { defending: 8, shooting: -5 }, narrativeTag: 'derin savunma yapıyor' },
-    ]
-  },
-  buildup: {
-    label: 'YAPILAN OYUN',
-    icon: '🎯',
-    options: [
-      { id: 'short', name: 'Kısa Paslaşma', desc: 'Tiki-taka stili top tutma', statBonus: { passing: 10, dribbling: 5 }, narrativeTag: 'kısa paslarla oynuyor' },
-      { id: 'direct', name: 'Direkt Oyun', desc: 'Uzun toplar ve hızlı geçiş', statBonus: { shooting: 5, physical: 5 }, narrativeTag: 'direkt top oynuyor' },
-      { id: 'counter', name: 'Kontratak', desc: 'Savun ve hızla hücuma geç', statBonus: { pace: 10, shooting: 5 }, narrativeTag: 'kontratak oynuyor' },
-    ]
-  },
-  set_piece: {
-    label: 'DURAN TOP',
-    icon: '🚩',
-    options: [
-      { id: 'short', name: 'Kısa Korner/FK', desc: 'Kısa kombinasyonlar', statBonus: { passing: 5 }, narrativeTag: 'kısa duran top oynuyor' },
-      { id: 'long', name: 'Uzun Top', desc: 'Kafa topuna yönel', statBonus: { physical: 8 }, narrativeTag: 'uzun duran top kullanıyor' },
-    ]
-  },
+  pressing:      { label:'PRES',             icon:'⚡', options:[{id:'gegenpressing',name:'Gegenpressing',statBonus:{defending:8,pace:5}},{id:'high_press',name:'Yüksek Pres',statBonus:{defending:5,physical:3}},{id:'mid_press',name:'Orta Pres',statBonus:{defending:2}},{id:'low_block',name:'Alçak Blok',statBonus:{defending:10,shooting:-3}}]},
+  tempo:         { label:'TEMPO',            icon:'🏃', options:[{id:'fast',name:'Yüksek Tempo',statBonus:{pace:8,passing:3}},{id:'normal',name:'Normal',statBonus:{}},{id:'slow',name:'Düşük Tempo',statBonus:{passing:8,dribbling:5}}]},
+  attack_width:  { label:'HÜCUM',            icon:'↔️', options:[{id:'wide',name:'Kanatlardan',statBonus:{dribbling:6}},{id:'central',name:'Ortadan',statBonus:{shooting:6,passing:4}},{id:'mixed',name:'Karma',statBonus:{passing:3}}]},
+  defense_line:  { label:'SAVUNMA HATTI',    icon:'🛡️', options:[{id:'high',name:'Yüksek Hat',statBonus:{defending:5,pace:-3}},{id:'standard',name:'Normal Hat',statBonus:{defending:2}},{id:'deep',name:'Alçak Hat',statBonus:{defending:8,shooting:-5}}]},
+  buildup:       { label:'OYUN TARZI',       icon:'🎯', options:[{id:'short',name:'Kısa Pas',statBonus:{passing:10,dribbling:5}},{id:'direct',name:'Direkt Oyun',statBonus:{shooting:5,physical:5}},{id:'counter',name:'Kontratak',statBonus:{pace:10,shooting:5}}]},
+  set_piece:     { label:'DURAN TOP',        icon:'🚩', options:[{id:'short',name:'Kısa',statBonus:{passing:5}},{id:'long',name:'Uzun Top',statBonus:{physical:8}}]},
 }
 
-// Oyuncu Rolleri
 const PLAYER_ROLES = {
-  GK: [
-    { id: 'sweeper_keeper', name: 'Sweeper Keeper', desc: 'Topu ayakla oynar, çıkar', statBonus: { pace: 10, passing: 8 }, narrativeTag: 'ceza sahasından çıkıyor' },
-    { id: 'classic_gk', name: 'Klasik Kaleci', desc: 'Pozisyonda bekler', statBonus: { goalkeeper: 5 }, narrativeTag: 'çizgisinde bekliyor' },
-  ],
-  CB: [
-    { id: 'ball_playing', name: 'Ball-Playing Def.', desc: 'Pas oyununu başlatır', statBonus: { passing: 8, dribbling: 5 }, narrativeTag: 'topa sahip çıkıp pas arıyor' },
-    { id: 'stopper', name: 'Stopper', desc: 'Agresif müdahale', statBonus: { defending: 8, physical: 5 }, narrativeTag: 'agresif müdahale yapıyor' },
-    { id: 'libero', name: 'Libero', desc: 'Öne çıkar, yaratır', statBonus: { dribbling: 8, passing: 6 }, narrativeTag: 'öne çıkıp oyun kuruyor' },
-  ],
-  LB: [
-    { id: 'wing_back', name: 'Wing Back', desc: 'Kanat oyuncusu gibi çıkar', statBonus: { pace: 8, dribbling: 6 }, narrativeTag: 'kanat bekinden hücuma çıkıyor' },
-    { id: 'full_back', name: 'Full Back', desc: 'Dengeli bek', statBonus: { defending: 5, passing: 5 }, narrativeTag: 'pozisyonunu koruyarak çıkıyor' },
-    { id: 'inverted_wb', name: 'Inverted Wing Back', desc: 'İçe keserek şut atar', statBonus: { shooting: 8, dribbling: 6 }, narrativeTag: 'içe kesip şut deniyor' },
-  ],
-  RB: [
-    { id: 'wing_back', name: 'Wing Back', desc: 'Kanat oyuncusu gibi çıkar', statBonus: { pace: 8, dribbling: 6 }, narrativeTag: 'kanat bekinden hücuma çıkıyor' },
-    { id: 'full_back', name: 'Full Back', desc: 'Dengeli bek', statBonus: { defending: 5, passing: 5 }, narrativeTag: 'pozisyonunu koruyarak çıkıyor' },
-    { id: 'inverted_wb', name: 'Inverted Wing Back', desc: 'İçe keserek şut atar', statBonus: { shooting: 8, dribbling: 6 }, narrativeTag: 'içe kesip şut deniyor' },
-  ],
-  CDM: [
-    { id: 'anchor', name: 'Anchor Man', desc: 'Defans önünde bekler', statBonus: { defending: 10 }, narrativeTag: 'defans önünde duruyor' },
-    { id: 'dlp', name: 'Deep Lying Playmaker', desc: 'Derinden oyun kurar', statBonus: { passing: 10, dribbling: 5 }, narrativeTag: 'derineden oyun kuruyor' },
-    { id: 'bwm', name: 'Ball Winning Mid.', desc: 'Top kapma uzmanı', statBonus: { defending: 8, physical: 8 }, narrativeTag: 'topu kazanmaya çalışıyor' },
-  ],
-  CM: [
-    { id: 'box_to_box', name: 'Box to Box', desc: 'Her iki ceza sahasında', statBonus: { physical: 8, shooting: 5 }, narrativeTag: 'cezadan cezaya koşuyor' },
-    { id: 'carrilero', name: 'Carrilero', desc: 'Yandan destek verir', statBonus: { passing: 8, defending: 5 }, narrativeTag: 'yandan koşuyor' },
-    { id: 'mezzala', name: 'Mezzala', desc: 'İçe keser, şut dener', statBonus: { shooting: 8, dribbling: 6 }, narrativeTag: 'içe kesip şut denedi' },
-  ],
-  CAM: [
-    { id: 'trequartista', name: 'Trequartista', desc: 'Tam özgürlük, pozisyon arar', statBonus: { dribbling: 10, shooting: 8 }, narrativeTag: 'serbest dolaşıp pozisyon arıyor' },
-    { id: 'shadow_striker', name: 'Shadow Striker', desc: 'Gizli santrfor', statBonus: { shooting: 10, pace: 5 }, narrativeTag: 'arkadan gelerek şut denedi' },
-    { id: 'adv_playmaker', name: 'Advanced Playmaker', desc: 'Asist üretir', statBonus: { passing: 10, dribbling: 6 }, narrativeTag: 'yaratıcı paslar atıyor' },
-  ],
-  LM: [
-    { id: 'winger', name: 'Winger', desc: 'Kanat koşusu ve orta', statBonus: { pace: 10, dribbling: 6 }, narrativeTag: 'kanat koşusu yapıyor' },
-    { id: 'inside_forward', name: 'Inside Forward', desc: 'İçe keser, şut atar', statBonus: { shooting: 10, dribbling: 8 }, narrativeTag: 'içe keserek şut denedi' },
-    { id: 'wide_playmaker', name: 'Wide Playmaker', desc: 'Kanaldan oyun kurar', statBonus: { passing: 10, dribbling: 5 }, narrativeTag: 'kanaldan oyun kurdu' },
-  ],
-  RM: [
-    { id: 'winger', name: 'Winger', desc: 'Kanat koşusu ve orta', statBonus: { pace: 10, dribbling: 6 }, narrativeTag: 'kanat koşusu yapıyor' },
-    { id: 'inside_forward', name: 'Inside Forward', desc: 'İçe keser, şut atar', statBonus: { shooting: 10, dribbling: 8 }, narrativeTag: 'içe keserek şut denedi' },
-    { id: 'wide_playmaker', name: 'Wide Playmaker', desc: 'Kanaldan oyun kurar', statBonus: { passing: 10, dribbling: 5 }, narrativeTag: 'kanaldan oyun kurdu' },
-  ],
-  LW: [
-    { id: 'winger', name: 'Winger', desc: 'Kanat koşusu ve orta', statBonus: { pace: 10, dribbling: 6 }, narrativeTag: 'kanat koşusu yapıyor' },
-    { id: 'inside_forward', name: 'Inside Forward', desc: 'İçe keser, şut atar', statBonus: { shooting: 10, dribbling: 8 }, narrativeTag: 'içe keserek şut denedi' },
-  ],
-  RW: [
-    { id: 'winger', name: 'Winger', desc: 'Kanat koşusu ve orta', statBonus: { pace: 10, dribbling: 6 }, narrativeTag: 'kanat koşusu yapıyor' },
-    { id: 'inside_forward', name: 'Inside Forward', desc: 'İçe keser, şut atar', statBonus: { shooting: 10, dribbling: 8 }, narrativeTag: 'içe keserek şut denedi' },
-  ],
-  ST: [
-    { id: 'advanced_forward', name: 'Advanced Forward', desc: 'Hareketli, kaçış yapar', statBonus: { pace: 8, shooting: 6 }, narrativeTag: 'arkayı zorlayan koşu yapıyor' },
-    { id: 'target_man', name: 'Target Man', desc: 'Kafa topu ve sırt dönük oyun', statBonus: { physical: 10, shooting: 5 }, narrativeTag: 'sırtını dönerek top aldı' },
-    { id: 'poacher', name: 'Poacher', desc: 'Ceza sahasında bekler', statBonus: { shooting: 12 }, narrativeTag: 'ceza sahasında pozisyon aldı' },
-    { id: 'dlf', name: 'Deep Lying Forward', desc: 'Geriye düşer, oyuna katılır', statBonus: { passing: 8, dribbling: 6 }, narrativeTag: 'geriye düşüp oyun kurdu' },
-  ],
-  CF: [
-    { id: 'advanced_forward', name: 'Advanced Forward', desc: 'Hareketli santrfor', statBonus: { pace: 8, shooting: 6 }, narrativeTag: 'hızlı koşuyla arkayı zorluyor' },
-    { id: 'poacher', name: 'Poacher', desc: 'Ceza sahasında bekler', statBonus: { shooting: 12 }, narrativeTag: 'ceza sahasında pozisyon aldı' },
-  ],
+  GK:  [{id:'sweeper_keeper',name:'Sweeper Keeper',statBonus:{pace:10,passing:8}},{id:'classic_gk',name:'Klasik Kaleci',statBonus:{goalkeeper:5}}],
+  CB:  [{id:'ball_playing',name:'Ball-Playing Def.',statBonus:{passing:8,dribbling:5}},{id:'stopper',name:'Stopper',statBonus:{defending:8,physical:5}},{id:'libero',name:'Libero',statBonus:{dribbling:8,passing:6}}],
+  LB:  [{id:'wing_back',name:'Wing Back',statBonus:{pace:8,dribbling:6}},{id:'full_back',name:'Full Back',statBonus:{defending:5,passing:5}},{id:'inverted_wb',name:'Inverted WB',statBonus:{shooting:8,dribbling:6}}],
+  RB:  [{id:'wing_back',name:'Wing Back',statBonus:{pace:8,dribbling:6}},{id:'full_back',name:'Full Back',statBonus:{defending:5,passing:5}},{id:'inverted_wb',name:'Inverted WB',statBonus:{shooting:8,dribbling:6}}],
+  CDM: [{id:'anchor',name:'Anchor Man',statBonus:{defending:10}},{id:'dlp',name:'Deep Lying PM',statBonus:{passing:10,dribbling:5}},{id:'bwm',name:'Ball Winning Mid',statBonus:{defending:8,physical:8}}],
+  CM:  [{id:'box_to_box',name:'Box to Box',statBonus:{physical:8,shooting:5}},{id:'carrilero',name:'Carrilero',statBonus:{passing:8,defending:5}},{id:'mezzala',name:'Mezzala',statBonus:{shooting:8,dribbling:6}}],
+  CAM: [{id:'trequartista',name:'Trequartista',statBonus:{dribbling:10,shooting:8}},{id:'shadow_striker',name:'Shadow Striker',statBonus:{shooting:10,pace:5}},{id:'adv_playmaker',name:'Adv. Playmaker',statBonus:{passing:10,dribbling:6}}],
+  LM:  [{id:'winger',name:'Winger',statBonus:{pace:10,dribbling:6}},{id:'inside_forward',name:'Inside Forward',statBonus:{shooting:10,dribbling:8}},{id:'wide_pm',name:'Wide Playmaker',statBonus:{passing:10,dribbling:5}}],
+  RM:  [{id:'winger',name:'Winger',statBonus:{pace:10,dribbling:6}},{id:'inside_forward',name:'Inside Forward',statBonus:{shooting:10,dribbling:8}},{id:'wide_pm',name:'Wide Playmaker',statBonus:{passing:10,dribbling:5}}],
+  LW:  [{id:'winger',name:'Winger',statBonus:{pace:10,dribbling:6}},{id:'inside_forward',name:'Inside Forward',statBonus:{shooting:10,dribbling:8}}],
+  RW:  [{id:'winger',name:'Winger',statBonus:{pace:10,dribbling:6}},{id:'inside_forward',name:'Inside Forward',statBonus:{shooting:10,dribbling:8}}],
+  ST:  [{id:'advanced_forward',name:'Advanced Forward',statBonus:{pace:8,shooting:6}},{id:'target_man',name:'Target Man',statBonus:{physical:10,shooting:5}},{id:'poacher',name:'Poacher',statBonus:{shooting:12}},{id:'dlf',name:'Deep Lying Fwd',statBonus:{passing:8,dribbling:6}}],
+  CF:  [{id:'advanced_forward',name:'Advanced Forward',statBonus:{pace:8,shooting:6}},{id:'poacher',name:'Poacher',statBonus:{shooting:12}}],
 }
 
 const FORMATION_POSITIONS = {
@@ -162,6 +64,46 @@ const FORMATION_POSITIONS = {
   '3-5-2':   [['GK',[50,90]],['CB',[25,70]],['CB',[50,68]],['CB',[75,70]],['LM',[8,48]],['CM',[30,45]],['CDM',[50,52]],['CM',[70,45]],['RM',[92,48]],['ST',[35,16]],['ST',[65,16]]],
   '5-3-2':   [['GK',[50,90]],['LB',[8,72]],['CB',[28,68]],['CB',[50,66]],['CB',[72,68]],['RB',[92,72]],['CM',[28,46]],['CM',[50,42]],['CM',[72,46]],['ST',[35,16]],['ST',[65,16]]],
   '3-4-3':   [['GK',[50,90]],['CB',[25,70]],['CB',[50,68]],['CB',[75,70]],['LM',[10,50]],['CM',[35,46]],['CM',[65,46]],['RM',[90,50]],['LW',[18,16]],['ST',[50,10]],['RW',[82,16]]],
+}
+
+// Mevkiye göre en uygun oyuncuyu seç
+function getBestPlayerForPos(pos, players, usedNames) {
+  const posGroups = {
+    GK:  ['GK'],
+    CB:  ['CB'],
+    LB:  ['LB','CB'],
+    RB:  ['RB','CB'],
+    CDM: ['CDM','CM'],
+    CM:  ['CM','CDM','CAM'],
+    CAM: ['CAM','CM'],
+    LM:  ['LM','LW','RM'],
+    RM:  ['RM','RW','LM'],
+    LW:  ['LW','LM','RM'],
+    RW:  ['RW','RM','LM'],
+    ST:  ['ST','CF'],
+    CF:  ['CF','ST'],
+  }
+  const preferred = posGroups[pos] || [pos]
+  const available = players.filter(p => !usedNames.has(p.name))
+  for (const pref of preferred) {
+    const found = available.filter(p => p.position === pref).sort((a,b) => b.overall - a.overall)
+    if (found.length > 0) return found[0]
+  }
+  return available.sort((a,b) => b.overall - a.overall)[0] || null
+}
+
+// Otomatik diz
+function autoArrange(players, formation) {
+  const slots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
+  const used = new Set()
+  const lineup = slots.map(([pos]) => {
+    const player = getBestPlayerForPos(pos, players, used)
+    if (player) used.add(player.name)
+    return player || null
+  })
+  const bench = players.filter(p => !used.has(p.name)).slice(0, 7)
+  const unassigned = players.filter(p => !used.has(p.name) && !bench.find(b => b.name === p.name))
+  return { lineup, bench, unassigned }
 }
 
 const NEWS_TEMPLATES = [
@@ -181,7 +123,6 @@ export default function GamePage() {
 
   const [lobby, setLobby] = useState(null)
   const [lobbyPlayers, setLobbyPlayers] = useState([])
-  const [mySquad, setMySquad] = useState(null)
   const [standings, setStandings] = useState([])
   const [activeTab, setActiveTab] = useState('home')
   const [matchReady, setMatchReady] = useState(false)
@@ -189,25 +130,21 @@ export default function GamePage() {
   const [news, setNews] = useState([])
   const [saving, setSaving] = useState(false)
 
-  // Kadro/Taktik state
-  const [lineup, setLineup] = useState(Array(11).fill(null))  // 11 slot
-  const [bench, setBench] = useState([])                        // yedekler
-  const [unassigned, setUnassigned] = useState([])              // sağdaki liste
-  const [tactics, setTactics] = useState({
-    pressing: 'high_press',
-    tempo: 'normal',
-    attack_width: 'mixed',
-    defense_line: 'standard',
-    buildup: 'short',
-    set_piece: 'long',
-  })
+  const [lineup, setLineup] = useState(Array(11).fill(null))
+  const [bench, setBench] = useState([])
+  const [unassigned, setUnassigned] = useState([])
+  const [tactics, setTactics] = useState({ pressing:'high_press', tempo:'normal', attack_width:'mixed', defense_line:'standard', buildup:'short', set_piece:'long' })
   const [playerRoles, setPlayerRoles] = useState({})
   const [draggedPlayer, setDraggedPlayer] = useState(null)
-  const [dragSource, setDragSource] = useState(null) // { type: 'lineup'|'bench'|'list', index }
+  const [dragSource, setDragSource] = useState(null)
+  const [selectedSlot, setSelectedSlot] = useState(null)
   const [selectedPlayerForRole, setSelectedPlayerForRole] = useState(null)
   const [formation, setFormation] = useState('4-4-2')
+  const [allMyPlayers, setAllMyPlayers] = useState([])
 
   const channelRef = useRef(null)
+  const lobbyRef = useRef(null)
+  const playersRef = useRef([])
   const isHost = lobbyPlayers.find(p => p.user_id === userId)?.is_host
 
   useEffect(() => { init() }, [code])
@@ -216,42 +153,34 @@ export default function GamePage() {
     const { data: lb } = await supabase.from('lobbies').select('*').ilike('code', code).maybeSingle()
     if (!lb) return
     setLobby(lb)
+    lobbyRef.current = lb
     setFormation(lb.formation || '4-4-2')
 
     const { data: pl } = await supabase.from('lobby_players').select('*').eq('lobby_id', lb.id).order('joined_at')
     setLobbyPlayers(pl || [])
+    playersRef.current = pl || []
 
+    // Draft picks'ten oyuncuları yükle
+    const { data: picks } = await supabase.from('draft_picks').select('*').eq('lobby_id', lb.id).eq('picked_by', userId).order('pick_order')
+    const myPlayers = (picks || []).map(p => PLAYER_CARDS.find(c => c.id === p.player_card_id)).filter(Boolean)
+    setAllMyPlayers(myPlayers)
+
+    // Kayıtlı kadro var mı?
     const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', lb.id).eq('user_id', userId).maybeSingle()
-    if (myS) {
-      setMySquad(myS)
-      const savedLineup = myS.lineup || []
-      const savedBench = myS.bench || []
-      setLineup(savedLineup.length === 11 ? savedLineup : [...savedLineup, ...Array(11 - savedLineup.length).fill(null)])
-      setBench(savedBench)
+    if (myS && myS.lineup && myS.lineup.length > 0) {
+      const savedLineup = [...myS.lineup, ...Array(11 - myS.lineup.length).fill(null)].slice(0, 11)
+      setLineup(savedLineup)
+      setBench(myS.bench || [])
       if (myS.tactics) setTactics(myS.tactics)
       if (myS.player_roles) setPlayerRoles(myS.player_roles)
-
-      // Atanmamış oyuncular
-      const assignedNames = [...savedLineup.filter(Boolean), ...savedBench].map(p => p?.name)
-      const allPicks = [...savedLineup.filter(Boolean), ...savedBench]
-      // draft_picks'ten tüm oyuncuları çek
-      const { data: picks } = await supabase.from('draft_picks').select('*').eq('lobby_id', lb.id).eq('picked_by', userId)
-      if (picks) {
-        const { PLAYER_CARDS } = await import('../lib/playerCards')
-        const allPlayers = picks.map(p => PLAYER_CARDS.find(c => c.id === p.player_card_id)).filter(Boolean)
-        const unassignedPlayers = allPlayers.filter(p => !assignedNames.includes(p.name))
-        setUnassigned(unassignedPlayers)
-      }
-    } else {
-      // İlk kez - draft picks'ten yükle
-      const { data: picks } = await supabase.from('draft_picks').select('*').eq('lobby_id', lb.id).eq('picked_by', userId).order('pick_order')
-      if (picks && picks.length > 0) {
-        const { PLAYER_CARDS } = await import('../lib/playerCards')
-        const allPlayers = picks.map(p => PLAYER_CARDS.find(c => c.id === p.player_card_id)).filter(Boolean)
-        setUnassigned(allPlayers)
-        setLineup(Array(11).fill(null))
-        setBench([])
-      }
+      const usedNames = new Set([...savedLineup.filter(Boolean), ...(myS.bench||[])].map(p => p?.name))
+      setUnassigned(myPlayers.filter(p => !usedNames.has(p.name)))
+    } else if (myPlayers.length > 0) {
+      // Otomatik diz
+      const { lineup: autoLineup, bench: autoBench, unassigned: autoUnassigned } = autoArrange(myPlayers, lb.formation || '4-4-2')
+      setLineup(autoLineup)
+      setBench(autoBench)
+      setUnassigned(autoUnassigned)
     }
 
     const { data: stats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
@@ -266,13 +195,13 @@ export default function GamePage() {
 
     setLoading(false)
 
+    if (channelRef.current) supabase.removeChannel(channelRef.current)
     channelRef.current = supabase.channel('game-' + lb.id)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lb.id}` }, async (p) => {
         setLobby(p.new)
-        const homeReady = p.new.match_ready_home
-        const awayReady = p.new.match_ready_away
-        if (homeReady && awayReady) {
-          await createMatch(lb.id, pl || [])
+        lobbyRef.current = p.new
+        if (p.new.match_ready_home && p.new.match_ready_away) {
+          await createMatch(lb.id, playersRef.current)
         }
       })
       .subscribe()
@@ -291,31 +220,59 @@ export default function GamePage() {
   }
 
   const handleReadyForMatch = async () => {
+    if (!lobby) return
     const newReady = !matchReady
     setMatchReady(newReady)
+    // Önce kadroyu kaydet
+    await saveSquadInternal()
     const field = isHost ? { match_ready_home: newReady } : { match_ready_away: newReady }
     await supabase.from('lobbies').update(field).eq('id', lobby.id)
+    // Her iki taraf hazırsa maçı başlat
+    const updatedLobby = { ...lobby, ...field }
+    if (updatedLobby.match_ready_home && updatedLobby.match_ready_away) {
+      await createMatch(lobby.id, playersRef.current)
+    }
+  }
+
+  const saveSquadInternal = async () => {
+    if (!lobby) return
+    const formationSlots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
+    const squadData = {
+      lobby_id: lobby.id,
+      user_id: userId,
+      formation,
+      lineup: lineup.map((p, i) => p ? { ...p, squad_pos: formationSlots[i]?.[0] || p.position } : null).filter(Boolean),
+      bench,
+      tactics,
+      player_roles: playerRoles,
+    }
+    const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lobby.id).eq('user_id', userId).maybeSingle()
+    if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
+    else await supabase.from('squads').insert(squadData)
   }
 
   const saveSquad = async () => {
-    if (!lobby) return
     setSaving(true)
-    try {
-      const squadData = {
-        lobby_id: lobby.id,
-        user_id: userId,
-        formation,
-        lineup: lineup.map((p, i) => p ? { ...p, squad_pos: FORMATION_POSITIONS[formation]?.[i]?.[0] || 'GK' } : null).filter(Boolean),
-        bench,
-        tactics,
-        player_roles: playerRoles,
-      }
-      const { data: ex } = await supabase.from('squads').select('id').eq('lobby_id', lobby.id).eq('user_id', userId).maybeSingle()
-      if (ex) await supabase.from('squads').update(squadData).eq('id', ex.id)
-      else await supabase.from('squads').insert(squadData)
-    } finally {
-      setSaving(false)
-    }
+    await saveSquadInternal()
+    setSaving(false)
+  }
+
+  const handleFormationChange = (newFormation) => {
+    setFormation(newFormation)
+    // Mevcut oyuncuları yeni dizilişe göre yeniden diz
+    const currentPlayers = [...lineup.filter(Boolean), ...bench, ...unassigned]
+    const { lineup: newLineup, bench: newBench, unassigned: newUnassigned } = autoArrange(currentPlayers, newFormation)
+    setLineup(newLineup)
+    setBench(newBench)
+    setUnassigned(newUnassigned)
+  }
+
+  const handleAutoArrange = () => {
+    const all = [...lineup.filter(Boolean), ...bench, ...unassigned]
+    const { lineup: newLineup, bench: newBench, unassigned: newUnassigned } = autoArrange(all, formation)
+    setLineup(newLineup)
+    setBench(newBench)
+    setUnassigned(newUnassigned)
   }
 
   // Sürükle bırak
@@ -329,17 +286,14 @@ export default function GamePage() {
     const newLineup = [...lineup]
     const newBench = [...bench]
     const newUnassigned = [...unassigned]
-
-    // Slotta zaten oyuncu var mı?
     const existingInSlot = newLineup[slotIndex]
 
-    // Kaynaktan kaldır
     if (dragSource.type === 'lineup') {
       newLineup[dragSource.index] = existingInSlot || null
     } else if (dragSource.type === 'bench') {
       newBench.splice(dragSource.index, 1)
       if (existingInSlot) newBench.push(existingInSlot)
-    } else if (dragSource.type === 'list') {
+    } else {
       const idx = newUnassigned.findIndex(p => p.id === draggedPlayer.id)
       if (idx > -1) newUnassigned.splice(idx, 1)
       if (existingInSlot) newUnassigned.push(existingInSlot)
@@ -351,6 +305,7 @@ export default function GamePage() {
     setUnassigned(newUnassigned)
     setDraggedPlayer(null)
     setDragSource(null)
+    setSelectedSlot(null)
   }
 
   const handleDropOnBench = () => {
@@ -359,22 +314,41 @@ export default function GamePage() {
     const newBench = [...bench]
     const newUnassigned = [...unassigned]
 
-    if (dragSource.type === 'lineup') {
-      newLineup[dragSource.index] = null
-    } else if (dragSource.type === 'list') {
+    if (dragSource.type === 'lineup') newLineup[dragSource.index] = null
+    else if (dragSource.type === 'list') {
       const idx = newUnassigned.findIndex(p => p.id === draggedPlayer.id)
       if (idx > -1) newUnassigned.splice(idx, 1)
     }
 
-    if (!newBench.find(p => p.id === draggedPlayer.id)) {
-      newBench.push(draggedPlayer)
-    }
-
+    if (!newBench.find(p => p.id === draggedPlayer.id)) newBench.push(draggedPlayer)
     setLineup(newLineup)
     setBench(newBench)
     setUnassigned(newUnassigned)
     setDraggedPlayer(null)
     setDragSource(null)
+  }
+
+  // Boş slota tıklayınca öneri listesi
+  const handleEmptySlotClick = (slotIndex) => {
+    setSelectedSlot(selectedSlot === slotIndex ? null : slotIndex)
+    setSelectedPlayerForRole(null)
+  }
+
+  const handleSlotPlayerPick = (slotIndex, player) => {
+    const newLineup = [...lineup]
+    const newUnassigned = [...unassigned]
+    const newBench = [...bench]
+    const existing = newLineup[slotIndex]
+    if (existing) newUnassigned.push(existing)
+    const unIdx = newUnassigned.findIndex(p => p.id === player.id)
+    if (unIdx > -1) newUnassigned.splice(unIdx, 1)
+    const bIdx = newBench.findIndex(p => p.id === player.id)
+    if (bIdx > -1) newBench.splice(bIdx, 1)
+    newLineup[slotIndex] = player
+    setLineup(newLineup)
+    setUnassigned(newUnassigned)
+    setBench(newBench)
+    setSelectedSlot(null)
   }
 
   const removeFromSlot = (slotIndex) => {
@@ -426,19 +400,19 @@ export default function GamePage() {
           <LogoMini logo={club?.logo} size={36}/>
           <div>
             <div style={{ fontWeight:800, fontSize:'.9rem' }}>{club?.clubName || myTeam?.team_name}</div>
-            <div style={{ color:'#606080', fontSize:'.7rem' }}>{formation} · Lobi: {lobby?.code}</div>
+            <div style={{ color:'#606080', fontSize:'.7rem' }}>{formation} · {lobby?.code}</div>
           </div>
         </div>
         <div style={{ display:'flex', gap:'1rem', alignItems:'center' }}>
           {opTeam && (
             <div style={{ display:'flex', alignItems:'center', gap:'.5rem', color:'#a0a0c0', fontSize:'.85rem' }}>
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'#f59e0b' }}/>
+              <div style={{ width:8, height:8, borderRadius:'50%', background: lobby?.match_ready_home && !isHost || lobby?.match_ready_away && isHost ? '#10b981' : '#f59e0b' }}/>
               {opTeam.team_name}
             </div>
           )}
           <button onClick={handleReadyForMatch}
-            style={{ padding:'.5rem 1.1rem', borderRadius:8, border:'none', background:matchReady?'#10b981':'#7c3aed', color:'#fff', fontWeight:700, fontSize:'.82rem', cursor:'pointer' }}>
-            {matchReady ? '✅ Hazırım' : '⚽ Maça Hazır'}
+            style={{ padding:'.5rem 1.25rem', borderRadius:8, border:'none', background:matchReady?'#10b981':'#7c3aed', color:'#fff', fontWeight:700, fontSize:'.85rem', cursor:'pointer', transition:'all .2s' }}>
+            {matchReady ? '✅ Hazırım — Bekliyor' : '⚽ Maça Hazır'}
           </button>
         </div>
       </div>
@@ -447,7 +421,7 @@ export default function GamePage() {
       <div style={{ background:'#0f0f2a', borderBottom:'1px solid #1e1e4a', display:'flex', padding:'0 1.5rem' }}>
         {[['home','🏠 Ana'],['squad','👥 Kadro & Taktik'],['standings','🏆 Puan'],['news','📰 Haberler']].map(([tab, label]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            style={{ padding:'.75rem 1rem', border:'none', background:'transparent', color:activeTab===tab?'#a78bfa':'#606080', fontWeight:700, fontSize:'.78rem', cursor:'pointer', borderBottom:activeTab===tab?'2px solid #7c3aed':'2px solid transparent', transition:'all .15s' }}>
+            style={{ padding:'.75rem 1rem', border:'none', background:'transparent', color:activeTab===tab?'#a78bfa':'#606080', fontWeight:700, fontSize:'.78rem', cursor:'pointer', borderBottom:activeTab===tab?'2px solid #7c3aed':'2px solid transparent' }}>
             {label}
           </button>
         ))}
@@ -455,7 +429,7 @@ export default function GamePage() {
 
       <div style={{ flex:1, overflow:'hidden' }}>
 
-        {/* ANA SAYFA */}
+        {/* ANA */}
         {activeTab === 'home' && (
           <div style={{ padding:'1.5rem', maxWidth:900, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
             <div style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:14, padding:'1.25rem', gridColumn:'1/-1' }}>
@@ -470,7 +444,7 @@ export default function GamePage() {
                 </div>
                 <div style={{ textAlign:'center', padding:'0 2rem' }}>
                   <div style={{ fontSize:'1.8rem', fontWeight:900, color:'#606080' }}>VS</div>
-                  <div style={{ fontSize:'.7rem', color:'#606080', marginTop:'.25rem' }}>İki taraf hazır olunca başlar</div>
+                  <div style={{ fontSize:'.7rem', color:'#606080' }}>İki taraf hazır olunca başlar</div>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'.75rem', flex:1, justifyContent:'flex-end' }}>
                   <div style={{ textAlign:'right' }}>
@@ -508,178 +482,199 @@ export default function GamePage() {
 
         {/* KADRO & TAKTİK */}
         {activeTab === 'squad' && (
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 280px', height:'calc(100vh - 110px)', overflow:'hidden' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', height:'calc(100vh - 112px)', overflow:'hidden' }}>
 
-            {/* SOL: Saha + Taktikler */}
+            {/* SOL */}
             <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', borderRight:'1px solid #1e1e4a' }}>
 
-              {/* Formasyon seç */}
-              <div style={{ padding:'.5rem 1rem', borderBottom:'1px solid #1e1e4a', display:'flex', alignItems:'center', gap:'.5rem', flexShrink:0, flexWrap:'wrap' }}>
-                <span style={{ fontSize:'.7rem', color:'#606080', fontWeight:700 }}>DİZİLİŞ:</span>
+              {/* Formasyon + butonlar */}
+              <div style={{ padding:'.4rem .75rem', borderBottom:'1px solid #1e1e4a', display:'flex', alignItems:'center', gap:'.4rem', flexShrink:0, flexWrap:'wrap', background:'#0a0a1a' }}>
                 {Object.keys(FORMATION_POSITIONS).map(f => (
-                  <button key={f} onClick={() => setFormation(f)}
-                    style={{ padding:'.25rem .6rem', borderRadius:6, border:`1px solid ${formation===f?'#7c3aed':'#2a2a5a'}`, background:formation===f?'rgba(124,58,237,.2)':'transparent', color:formation===f?'#a78bfa':'#606080', fontWeight:700, fontSize:'.72rem', cursor:'pointer' }}>
+                  <button key={f} onClick={() => handleFormationChange(f)}
+                    style={{ padding:'.2rem .55rem', borderRadius:5, border:`1px solid ${formation===f?'#7c3aed':'#2a2a5a'}`, background:formation===f?'rgba(124,58,237,.2)':'transparent', color:formation===f?'#a78bfa':'#606080', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
                     {f}
                   </button>
                 ))}
+                <button onClick={handleAutoArrange}
+                  style={{ padding:'.2rem .6rem', borderRadius:5, border:'1px solid #f59e0b', background:'rgba(245,158,11,.1)', color:'#f59e0b', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
+                  ⚡ Otomatik Diz
+                </button>
                 <button onClick={saveSquad} disabled={saving}
-                  style={{ marginLeft:'auto', padding:'.3rem .8rem', borderRadius:6, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, fontSize:'.72rem', cursor:'pointer' }}>
+                  style={{ marginLeft:'auto', padding:'.2rem .7rem', borderRadius:5, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
                   {saving ? '...' : '💾 Kaydet'}
                 </button>
               </div>
 
-              <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-                {/* Saha */}
-                <div style={{ flex:'0 0 55%', position:'relative', background:'linear-gradient(180deg,#0d3320 0%,#0f4a28 50%,#0d3320 100%)', overflow:'hidden' }}
-                  onDragOver={e => e.preventDefault()}
-                >
-                  <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <rect x="3" y="2" width="94" height="96" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth=".4"/>
-                    <line x1="3" y1="50" x2="97" y2="50" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
-                    <circle cx="50" cy="50" r="12" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
-                    <rect x="22" y="2" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
-                    <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
-                  </svg>
+              {/* Saha */}
+              <div style={{ flex:'0 0 52%', position:'relative', background:'linear-gradient(180deg,#0d3320 0%,#0f4a28 50%,#0d3320 100%)', overflow:'hidden', minHeight:280 }}
+                onDragOver={e => e.preventDefault()}
+              >
+                <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <rect x="3" y="2" width="94" height="96" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth=".4"/>
+                  <line x1="3" y1="50" x2="97" y2="50" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
+                  <circle cx="50" cy="50" r="12" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
+                  <rect x="22" y="2" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
+                  <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
+                </svg>
 
-                  {formationSlots.map(([pos, [x, y]], i) => {
-                    const player = lineup[i]
-                    return (
-                      <div key={i}
-                        onDragOver={e => e.preventDefault()}
-                        onDrop={() => handleDropOnSlot(i)}
-                        style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', zIndex:2 }}
-                      >
-                        {player ? (
+                {formationSlots.map(([pos, [x, y]], i) => {
+                  const player = lineup[i]
+                  const isSelectedSlot = selectedSlot === i
+                  // Boş slot için öneri oyuncular
+                  const suggestions = !player ? [...unassigned, ...bench]
+                    .filter(p => {
+                      const posGroups = { GK:['GK'], CB:['CB'], LB:['LB','CB'], RB:['RB','CB'], CDM:['CDM','CM'], CM:['CM','CDM','CAM'], CAM:['CAM','CM'], LM:['LM','LW'], RM:['RM','RW'], LW:['LW','LM'], RW:['RW','RM'], ST:['ST','CF'], CF:['CF','ST'] }
+                      return (posGroups[pos] || [pos]).includes(p.position)
+                    })
+                    .sort((a,b) => b.overall - a.overall)
+                    .slice(0, 4) : []
+
+                  return (
+                    <div key={i}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={() => handleDropOnSlot(i)}
+                      style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', zIndex:2 }}
+                    >
+                      {player ? (
+                        <div draggable onDragStart={() => handleDragStart(player, { type:'lineup', index:i })}
+                          style={{ position:'relative', cursor:'grab' }}>
+                          <button onClick={() => removeFromSlot(i)}
+                            style={{ position:'absolute', top:-5, right:-5, width:13, height:13, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:8, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
+                            ×
+                          </button>
                           <div
-                            draggable
-                            onDragStart={() => handleDragStart(player, { type:'lineup', index:i })}
-                            style={{ position:'relative', cursor:'grab' }}
-                          >
-                            {/* Çarpı butonu */}
-                            <button onClick={() => removeFromSlot(i)}
-                              style={{ position:'absolute', top:-6, right:-6, width:14, height:14, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:8, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0, lineHeight:1 }}>
-                              ×
-                            </button>
-                            {/* Oyuncu kartı */}
-                            <div onClick={() => setSelectedPlayerForRole(selectedPlayerForRole?.name === player.name ? null : { ...player, slotPos: pos })}
-                              style={{ background:getPosColor(pos), border:`1.5px solid ${getPosTextColor(pos)}`, borderRadius:6, padding:'2px 4px', minWidth:50, textAlign:'center', boxShadow:'0 2px 8px rgba(0,0,0,.5)' }}>
-                              <div style={{ fontSize:'.55rem', color:getPosTextColor(pos), fontWeight:700, letterSpacing:'.02em' }}>{pos}</div>
-                              <div style={{ fontSize:'.75rem', fontWeight:900, color:'#fbbf24' }}>{player.overall}</div>
-                              <div style={{ fontSize:'.52rem', fontWeight:700, color:'#fff', whiteSpace:'nowrap', maxWidth:52, overflow:'hidden', textOverflow:'ellipsis' }}>
-                                {(player.name || '').split(' ').pop()}
+                            onClick={() => setSelectedPlayerForRole(selectedPlayerForRole?.name===player.name ? null : { ...player, slotPos:pos })}
+                            style={{ background:getPosColor(pos), border:`1.5px solid ${getPosTextColor(pos)}`, borderRadius:6, padding:'2px 5px', minWidth:52, textAlign:'center', boxShadow:'0 2px 8px rgba(0,0,0,.5)', cursor:'pointer' }}>
+                            <div style={{ fontSize:'.52rem', color:getPosTextColor(pos), fontWeight:700 }}>{pos}</div>
+                            <div style={{ fontSize:'.78rem', fontWeight:900, color:'#fbbf24' }}>{player.overall}</div>
+                            <div style={{ fontSize:'.52rem', fontWeight:700, color:'#fff', whiteSpace:'nowrap', maxWidth:54, overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
+                            {playerRoles[player.name] && (
+                              <div style={{ fontSize:'.44rem', color:getPosTextColor(pos), whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:54 }}>
+                                {(PLAYER_ROLES[pos]||PLAYER_ROLES[player.position]||[]).find(r=>r.id===playerRoles[player.name])?.name?.split(' ')[0]}
                               </div>
-                              {playerRoles[player.name] && (
-                                <div style={{ fontSize:'.45rem', color:getPosTextColor(pos), marginTop:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:52 }}>
-                                  {PLAYER_ROLES[pos]?.find(r => r.id === playerRoles[player.name])?.name?.split(' ')[0]}
-                                </div>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        ) : (
-                          <div style={{ width:50, height:46, borderRadius:6, border:`1.5px dashed ${getPosTextColor(pos)}`, background:'rgba(0,0,0,.3)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2 }}>
-                            <div style={{ fontSize:'.6rem', color:getPosTextColor(pos), fontWeight:700 }}>{pos}</div>
-                            <div style={{ fontSize:'.5rem', color:'rgba(255,255,255,.3)' }}>Sürükle</div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Rol seçim paneli */}
-                {selectedPlayerForRole && (
-                  <div style={{ padding:'.75rem 1rem', borderTop:'1px solid #1e1e4a', background:'#0f0f2a', flexShrink:0 }}>
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'.5rem' }}>
-                      <div style={{ fontWeight:700, fontSize:'.82rem' }}>{selectedPlayerForRole.name} — Rol Seç</div>
-                      <button onClick={() => setSelectedPlayerForRole(null)} style={{ background:'none', border:'none', color:'#606080', cursor:'pointer', fontSize:'.8rem' }}>✕</button>
-                    </div>
-                    <div style={{ display:'flex', gap:'.4rem', flexWrap:'wrap' }}>
-                      {(PLAYER_ROLES[selectedPlayerForRole.slotPos] || PLAYER_ROLES[selectedPlayerForRole.position] || []).map(role => (
-                        <button key={role.id}
-                          onClick={() => { setPlayerRoles(prev => ({ ...prev, [selectedPlayerForRole.name]: role.id })) }}
-                          title={role.desc}
-                          style={{ padding:'.3rem .65rem', borderRadius:7, border:`1.5px solid ${playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#2a2a5a'}`, background:playerRoles[selectedPlayerForRole.name]===role.id?'rgba(124,58,237,.2)':'#12122a', color:playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#606080', fontWeight:700, fontSize:'.72rem', cursor:'pointer' }}>
-                          {role.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Yedek alanı */}
-                <div style={{ borderTop:'1px solid #1e1e4a', padding:'.5rem .75rem', flexShrink:0, background:'rgba(0,0,0,.2)' }}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={handleDropOnBench}
-                >
-                  <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.4rem' }}>YEDEKLER ({bench.length}/7)</div>
-                  <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
-                    {bench.map((player, i) => (
-                      <div key={i} draggable onDragStart={() => handleDragStart(player, { type:'bench', index:i })}
-                        style={{ position:'relative', cursor:'grab' }}>
-                        <button onClick={() => removeFromBench(i)}
-                          style={{ position:'absolute', top:-5, right:-5, width:13, height:13, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:7, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
-                          ×
-                        </button>
-                        <div style={{ background:'#1a1a3a', border:'1px solid #2a2a5a', borderRadius:6, padding:'2px 5px', textAlign:'center', minWidth:44 }}>
-                          <div style={{ fontSize:'.7rem', fontWeight:900, color:'#a0a0c0' }}>{player.overall}</div>
-                          <div style={{ fontSize:'.5rem', color:'#606080', whiteSpace:'nowrap', maxWidth:44, overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
                         </div>
-                      </div>
-                    ))}
-                    {bench.length < 7 && Array.from({ length: 7 - bench.length }).map((_, i) => (
-                      <div key={'eb'+i} style={{ width:44, height:38, borderRadius:6, border:'1px dashed #2a2a5a', background:'rgba(0,0,0,.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        <span style={{ fontSize:'.55rem', color:'rgba(255,255,255,.2)' }}>Yedek</span>
-                      </div>
+                      ) : (
+                        <div style={{ position:'relative' }}>
+                          <div onClick={() => handleEmptySlotClick(i)}
+                            style={{ width:52, height:48, borderRadius:6, border:`1.5px dashed ${isSelectedSlot?getPosTextColor(pos):'rgba(255,255,255,.2)'}`, background:isSelectedSlot?`${getPosColor(pos)}99`:'rgba(0,0,0,.3)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                            <div style={{ fontSize:'.6rem', color:getPosTextColor(pos), fontWeight:700 }}>{pos}</div>
+                            <div style={{ fontSize:'.48rem', color:'rgba(255,255,255,.4)' }}>Tıkla/Sürükle</div>
+                          </div>
+                          {isSelectedSlot && suggestions.length > 0 && (
+                            <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', zIndex:50, background:'#12122a', border:'1px solid #7c3aed', borderRadius:8, padding:'.4rem', minWidth:130, boxShadow:'0 4px 20px rgba(0,0,0,.8)', marginTop:2 }}>
+                              <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, marginBottom:'.3rem', letterSpacing:'.04em' }}>EN UYGUN OYUNCULAR</div>
+                              {suggestions.map(s => (
+                                <div key={s.id} onClick={() => handleSlotPlayerPick(i, s)}
+                                  style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.3rem .4rem', borderRadius:5, cursor:'pointer', marginBottom:'.15rem', background:'rgba(124,58,237,.1)' }}
+                                  onMouseEnter={e=>e.currentTarget.style.background='rgba(124,58,237,.25)'}
+                                  onMouseLeave={e=>e.currentTarget.style.background='rgba(124,58,237,.1)'}
+                                >
+                                  <span style={{ background:getPosColor(s.position), color:getPosTextColor(s.position), fontSize:'.55rem', fontWeight:700, padding:'.1rem .25rem', borderRadius:3, minWidth:26, textAlign:'center' }}>{s.position}</span>
+                                  <span style={{ fontSize:'.68rem', fontWeight:600, flex:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.name}</span>
+                                  <span style={{ fontSize:'.72rem', fontWeight:800, color:'#fbbf24' }}>{s.overall}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Rol seçim */}
+              {selectedPlayerForRole && (
+                <div style={{ padding:'.6rem 1rem', borderTop:'1px solid #1e1e4a', background:'#0a0a1a', flexShrink:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'.4rem' }}>
+                    <div style={{ fontWeight:700, fontSize:'.8rem' }}>{selectedPlayerForRole.name} — Rol</div>
+                    <button onClick={() => setSelectedPlayerForRole(null)} style={{ background:'none', border:'none', color:'#606080', cursor:'pointer', fontSize:'.9rem' }}>✕</button>
+                  </div>
+                  <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
+                    {(PLAYER_ROLES[selectedPlayerForRole.slotPos] || PLAYER_ROLES[selectedPlayerForRole.position] || []).map(role => (
+                      <button key={role.id} onClick={() => setPlayerRoles(prev => ({ ...prev, [selectedPlayerForRole.name]: role.id }))}
+                        title={role.desc}
+                        style={{ padding:'.25rem .55rem', borderRadius:6, border:`1.5px solid ${playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#2a2a5a'}`, background:playerRoles[selectedPlayerForRole.name]===role.id?'rgba(124,58,237,.2)':'#12122a', color:playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#606080', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
+                        {role.name}
+                      </button>
                     ))}
                   </div>
                 </div>
+              )}
 
-                {/* Taktik ayarları */}
-                <div style={{ borderTop:'1px solid #1e1e4a', padding:'.6rem 1rem', overflowY:'auto', flexShrink:0, maxHeight:200 }}>
-                  <div style={{ fontSize:'.6rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.5rem' }}>TAKTİKLER</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'.5rem' }}>
-                    {Object.entries(TACTICS_CONFIG).map(([key, config]) => (
-                      <div key={key}>
-                        <div style={{ fontSize:'.6rem', color:'#a0a0c0', fontWeight:700, marginBottom:'.25rem' }}>{config.icon} {config.label}</div>
-                        <select
-                          value={tactics[key]}
-                          onChange={e => setTactics(prev => ({ ...prev, [key]: e.target.value }))}
-                          style={{ width:'100%', background:'#0f0f2a', border:'1px solid #2a2a5a', borderRadius:6, padding:'.25rem .4rem', color:'#a78bfa', fontSize:'.7rem', outline:'none', cursor:'pointer' }}
-                        >
-                          {config.options.map(opt => (
-                            <option key={opt.id} value={opt.id}>{opt.name}</option>
-                          ))}
-                        </select>
+              {/* Yedekler */}
+              <div style={{ borderTop:'1px solid #1e1e4a', padding:'.4rem .75rem', flexShrink:0, background:'rgba(0,0,0,.15)' }}
+                onDragOver={e => e.preventDefault()} onDrop={handleDropOnBench}>
+                <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.3rem' }}>YEDEKLER ({bench.length}/7)</div>
+                <div style={{ display:'flex', gap:'.3rem', flexWrap:'wrap' }}>
+                  {bench.map((player, i) => (
+                    <div key={i} draggable onDragStart={() => handleDragStart(player, { type:'bench', index:i })}
+                      style={{ position:'relative', cursor:'grab' }}>
+                      <button onClick={() => removeFromBench(i)}
+                        style={{ position:'absolute', top:-4, right:-4, width:12, height:12, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:7, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
+                        ×
+                      </button>
+                      <div style={{ background:getPosColor(player.position), border:`1px solid ${getPosTextColor(player.position)}`, borderRadius:5, padding:'2px 5px', textAlign:'center', minWidth:44 }}>
+                        <div style={{ fontSize:'.72rem', fontWeight:900, color:'#fbbf24' }}>{player.overall}</div>
+                        <div style={{ fontSize:'.5rem', color:'#fff', whiteSpace:'nowrap', maxWidth:44, overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                  {bench.length < 7 && Array.from({ length:7-bench.length }).map((_,i) => (
+                    <div key={'eb'+i} style={{ width:44, height:36, borderRadius:5, border:'1px dashed #2a2a5a', background:'rgba(0,0,0,.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <span style={{ fontSize:'.5rem', color:'rgba(255,255,255,.2)' }}>Yedek</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Taktikler */}
+              <div style={{ borderTop:'1px solid #1e1e4a', padding:'.5rem .75rem', flexShrink:0, background:'#0a0a1a', overflowX:'auto' }}>
+                <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.4rem' }}>TAKTİKLER</div>
+                <div style={{ display:'flex', gap:'.75rem', flexWrap:'wrap' }}>
+                  {Object.entries(TACTICS_CONFIG).map(([key, config]) => (
+                    <div key={key} style={{ minWidth:110 }}>
+                      <div style={{ fontSize:'.6rem', color:'#a0a0c0', fontWeight:700, marginBottom:'.2rem' }}>{config.icon} {config.label}</div>
+                      <select value={tactics[key]} onChange={e => setTactics(prev => ({ ...prev, [key]:e.target.value }))}
+                        style={{ width:'100%', background:'#12122a', border:'1px solid #2a2a5a', borderRadius:5, padding:'.2rem .35rem', color:'#a78bfa', fontSize:'.68rem', outline:'none', cursor:'pointer' }}>
+                        {config.options.map(opt => (
+                          <option key={opt.id} value={opt.id}>{opt.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* SAĞ: Oyuncu Listesi */}
+            {/* SAĞ: Oyuncu listesi */}
             <div style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
-              <div style={{ padding:'.75rem', borderBottom:'1px solid #1e1e4a', flexShrink:0 }}>
-                <div style={{ fontWeight:800, fontSize:'.85rem' }}>Oyuncular</div>
-                <div style={{ color:'#606080', fontSize:'.7rem' }}>Sürükle → sahaya veya yedek alanına bırak</div>
+              <div style={{ padding:'.6rem .75rem', borderBottom:'1px solid #1e1e4a', flexShrink:0, background:'#0a0a1a' }}>
+                <div style={{ fontWeight:800, fontSize:'.82rem' }}>Oyuncular</div>
+                <div style={{ color:'#606080', fontSize:'.65rem' }}>Sürükle → sahaya veya yedeğe bırak</div>
               </div>
-              <div style={{ flex:1, overflowY:'auto', padding:'.5rem' }}>
+              <div style={{ flex:1, overflowY:'auto', padding:'.4rem' }}>
                 {unassigned.length === 0 && (
-                  <div style={{ textAlign:'center', color:'#606080', fontSize:'.8rem', padding:'2rem' }}>Tüm oyuncular yerleştirildi!</div>
+                  <div style={{ textAlign:'center', color:'#10b981', fontSize:'.8rem', padding:'1.5rem', fontWeight:600 }}>✅ Tüm oyuncular yerleştirildi!</div>
                 )}
-                {unassigned.map((player, i) => (
-                  <div key={player.id || i} draggable
+                {[...unassigned].sort((a,b) => {
+                  const order = { GK:0, CB:1, LB:2, RB:3, CDM:4, CM:5, CAM:6, LM:7, RM:8, LW:9, RW:10, ST:11, CF:12 }
+                  return (order[a.position]||99) - (order[b.position]||99) || b.overall - a.overall
+                }).map((player, i) => (
+                  <div key={player.id||i} draggable
                     onDragStart={() => handleDragStart(player, { type:'list', index:i })}
-                    style={{ display:'flex', alignItems:'center', gap:'.4rem', padding:'.4rem .5rem', borderRadius:7, marginBottom:'.25rem', background:'#12122a', border:'1px solid #1e1e4a', cursor:'grab' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor='#7c3aed'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor='#1e1e4a'}
+                    style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#12122a', border:'1px solid #1e1e4a', cursor:'grab', transition:'border-color .1s' }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#7c3aed'}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor='#1e1e4a'}
                   >
-                    <span style={{ background:getPosColor(player.position), color:getPosTextColor(player.position), fontSize:'.58rem', fontWeight:700, padding:'.1rem .3rem', borderRadius:4, minWidth:30, textAlign:'center', flexShrink:0 }}>{player.position}</span>
+                    <span style={{ background:getPosColor(player.position), color:getPosTextColor(player.position), fontSize:'.55rem', fontWeight:700, padding:'.1rem .28rem', borderRadius:4, minWidth:28, textAlign:'center', flexShrink:0 }}>{player.position}</span>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:700, fontSize:'.75rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{player.name}</div>
-                      <div style={{ color:'#606080', fontSize:'.62rem' }}>{player.club}</div>
+                      <div style={{ fontWeight:700, fontSize:'.72rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{player.name}</div>
+                      <div style={{ color:'#606080', fontSize:'.6rem' }}>{player.club}</div>
                     </div>
-                    <div style={{ fontWeight:800, color:'#fbbf24', fontSize:'.82rem', flexShrink:0 }}>{player.overall}</div>
+                    <div style={{ fontWeight:800, color:'#fbbf24', fontSize:'.78rem', flexShrink:0 }}>{player.overall}</div>
                   </div>
                 ))}
               </div>
@@ -704,9 +699,9 @@ export default function GamePage() {
                 </thead>
                 <tbody>
                   {lobbyPlayers.map((player, i) => {
-                    const stat = standings.find(s => s.user_id === player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
+                    const stat = standings.find(s=>s.user_id===player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
                     const isMe = player.user_id === userId
-                    const av = (stat.goals_for||0) - (stat.goals_against||0)
+                    const av = (stat.goals_for||0)-(stat.goals_against||0)
                     return (
                       <tr key={player.id} style={{ borderTop:'1px solid #1e1e4a', background:isMe?'rgba(124,58,237,.08)':'transparent' }}>
                         <td style={{ padding:'.6rem .75rem', textAlign:'center', fontWeight:800, color:i===0?'#fbbf24':'#606080' }}>{i+1}</td>
@@ -734,7 +729,7 @@ export default function GamePage() {
         {activeTab === 'news' && (
           <div style={{ padding:'1.5rem', maxWidth:700, margin:'0 auto', display:'flex', flexDirection:'column', gap:'.75rem' }}>
             {news.map(n => (
-              <div key={n.id} style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:12, padding:'1rem 1.25rem', display:'flex', gap:'1rem', alignItems:'flex-start' }}>
+              <div key={n.id} style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:12, padding:'1rem 1.25rem', display:'flex', gap:'1rem' }}>
                 <div style={{ width:40, height:40, borderRadius:8, background:'#1e1e4a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', flexShrink:0 }}>📰</div>
                 <div>
                   <div style={{ fontWeight:600, fontSize:'.9rem', marginBottom:'.25rem' }}>{n.text}</div>
