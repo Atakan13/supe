@@ -357,20 +357,25 @@ export default function MenuPage() {
     if (!c) return
     setLoading(true)
     try {
+      const genCode = () => Math.random().toString(36).substring(2, 7).toUpperCase()
+      const lobbyCode = genCode()
       const { data: lobby, error: le } = await supabase.from('lobbies').insert({
-        host_id: userId,
-        host_name: c.managerName,
+        code: lobbyCode,
+        host_user_id: userId,
         formation: c.formation || '4-4-2',
-        difficulty: 'medium',
-        budget: c.budget || 500000000,
-        star_limit: 5,
+        budget: c.budget || 300000000,
+        league: c.league || 'all',
+        status: 'waiting',
       }).select().single()
       if (le) throw le
       await supabase.from('lobby_players').insert({
         lobby_id: lobby.id,
         user_id: userId,
-        user_name: c.managerName,
+        manager_name: c.managerName,
         team_name: c.clubName,
+        logo: c.logo || null,
+        kit: c.kit || null,
+        manager_style: c.managerStyle || null,
         is_host: true,
         is_ready: false,
       })
@@ -393,7 +398,9 @@ export default function MenuPage() {
       const lobby = lobbies[0]
       const { error: pe } = await supabase.from('lobby_players').insert({
         lobby_id: lobby.id, user_id: userId,
-        user_name: c.managerName, team_name: c.clubName,
+        manager_name: c.managerName, team_name: c.clubName,
+        logo: c.logo || null, kit: c.kit || null,
+        manager_style: c.managerStyle || null,
         is_host: false, is_ready: false,
       })
       if (pe) throw pe

@@ -115,8 +115,10 @@ export default function JoinClubPage() {
       const { error: pe } = await supabase.from('lobby_players').insert({
         lobby_id: lobby.id,
         user_id: userId,
-        user_name: managerName,
+        manager_name: managerName,
         team_name: clubName,
+        logo: { shape: logoShape, icon: logoIcon, bg: logoBg, accent: logoAccent },
+        kit: { primary: kitPrimary, secondary: kitSecondary, pattern: kitPattern },
         is_host: false,
         is_ready: false,
       })
