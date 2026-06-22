@@ -155,7 +155,7 @@ export default function LobbyPage() {
   if (error) return (
     <div style={{ minHeight:'100vh', background:'var(--bg-primary)', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:'1rem' }}>
       <div style={{ color:'var(--red)', fontSize:'1.1rem' }}>{error}</div>
-      <button className="btn btn-secondary" onClick={() => navigate('/')}>← Ana Menü</button>
+      <button className="btn btn-secondary" onClick={() => navigate('/menu')}>← Ana Menü</button>
     </div>
   )
 
@@ -174,7 +174,7 @@ export default function LobbyPage() {
           <button className="btn btn-primary" style={{ width:'100%', padding:'1rem' }} onClick={handleJoinLobby}>
             KATIL →
           </button>
-          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/')}>
+          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/menu')}>
             ← Ana Menü
           </button>
         </div>
@@ -260,7 +260,7 @@ export default function LobbyPage() {
               {allReady ? '🚀 DRAFTI BAŞLAT' : players.length < 2 ? 'Oyuncu bekleniyor...' : 'Herkes hazır değil'}
             </button>
           )}
-          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/')}>← Menüye Dön</button>
+          <button className="btn btn-secondary" style={{ width:'100%' }} onClick={() => navigate('/menu')}>← Menüye Dön</button>
         </div>
       </div>
     </div>

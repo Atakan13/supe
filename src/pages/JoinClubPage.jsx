@@ -293,7 +293,7 @@ export default function JoinClubPage() {
           )}
         </div>
 
-        <button onClick={() => navigate('/')}
+        <button onClick={() => navigate('/menu')}
           style={{ marginTop:'1rem', width:'100%', padding:'.75rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#606080', fontWeight:600, cursor:'pointer' }}>
           ← Ana Menüye Dön
         </button>
