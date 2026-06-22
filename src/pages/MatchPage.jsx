@@ -639,7 +639,7 @@ export default function MatchPage() {
                         <div style={{fontSize:'.82rem',fontWeight:900,color:'#fbbf24'}}>{card.overall}</div>
                         <div style={{fontSize:'.58rem',fontWeight:700,color:'#fff',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:62}}>{(p.name||'').split(' ').pop()}</div>
                         <div style={{fontSize:'.52rem',color:'#606080'}}>{p.squad_pos||p.position}</div>
-                        <div style={{fontSize:'.5rem',color:stamColor}}>{stam}%</div>
+                        <div style={{fontSize:'.7rem'}}>{stam>=80?'💚':stam>=60?'💛':'❤️'}</div>
                       </div>
                     )
                   })}
@@ -733,14 +733,12 @@ export default function MatchPage() {
                   <div style={{fontSize:'.62rem',color:'#606080',fontWeight:700,letterSpacing:'.08em',marginBottom:'.5rem'}}>OYUNCU KONDİSYONU</div>
                   {myLineup.slice(0,11).map((p,i)=>{
                     const stam=myCurrentStamina[p.name]??100
-                    const stamColor=stam>=80?'#10b981':stam>=60?'#f59e0b':stam>=40?'#ef4444':'#991b1b'
+                    const stamHeart=stam>=80?'💚':stam>=60?'💛':'❤️'
                     return (
                       <div key={i} style={{display:'flex',alignItems:'center',gap:'.4rem',marginBottom:'.2rem'}}>
                         <span style={{fontSize:'.6rem',color:'#a0a0c0',minWidth:80,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(p.name||'').split(' ').pop()}</span>
-                        <div style={{flex:1,height:4,background:'#1e1e4a',borderRadius:2,overflow:'hidden'}}>
-                          <div style={{width:`${stam}%`,height:'100%',background:stamColor,transition:'width .5s'}}/>
-                        </div>
-                        <span style={{fontSize:'.58rem',color:stamColor,minWidth:24,textAlign:'right'}}>{stam}%</span>
+                        <span style={{fontSize:'.75rem'}}>{stamHeart}</span>
+                        <span style={{fontSize:'.58rem',color:'#606080'}}>{stam}%</span>
                       </div>
                     )
                   })}
@@ -780,12 +778,7 @@ export default function MatchPage() {
                           <span style={{fontSize:'.52rem',background:'#1e1e4a',color:'#a0a0c0',padding:'.05rem .25rem',borderRadius:3,minWidth:26,textAlign:'center'}}>{p.squad_pos||p.position}</span>
                           <span style={{flex:1,fontSize:'.68rem',fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.name}</span>
                           {sub&&<span style={{fontSize:'.5rem',color:'#10b981'}}>🔄</span>}
-                          <div style={{display:'flex',alignItems:'center',gap:2}}>
-                            <div style={{width:24,height:3,background:'#1e1e4a',borderRadius:2,overflow:'hidden'}}>
-                              <div style={{width:`${stam}%`,height:'100%',background:stamColor}}/>
-                            </div>
-                            <span style={{fontSize:'.5rem',color:stamColor}}>{stam}%</span>
-                          </div>
+                          <span style={{fontSize:'.7rem'}}>{stam>=80?'💚':stam>=60?'💛':'❤️'}</span>
                         </div>
                       )
                     })}
@@ -826,7 +819,7 @@ export default function MatchPage() {
                             style={{display:'flex',alignItems:'center',gap:'.4rem',padding:'.35rem .5rem',borderRadius:7,cursor:'pointer',background:isSel?'rgba(239,68,68,.15)':'#12122a',border:`1px solid ${isSel?'#ef4444':'#1e1e4a'}`,marginBottom:'.2rem',transition:'all .1s'}}>
                             <span style={{fontSize:'.55rem',background:'#1e1e4a',color:'#a0a0c0',padding:'.05rem .25rem',borderRadius:3,minWidth:26,textAlign:'center'}}>{p.squad_pos||p.position}</span>
                             <span style={{flex:1,fontSize:'.72rem',fontWeight:600}}>{p.name}</span>
-                            <span style={{fontSize:'.6rem',color:stamColor}}>{stam}%</span>
+                            <span style={{fontSize:'.75rem'}}>{stam>=80?'💚':stam>=60?'💛':'❤️'}</span>
                           </div>
                         )
                       })}
