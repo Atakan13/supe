@@ -107,7 +107,7 @@ const MISS_NARR = [
 
 const MATCH_MINUTES = [5,12,18,24,31,38,42,47,54,60,67,74,80,86,90]
 const ZONES = ['sol kanattan','orta sahadan','sağ kanattan','ceza sahasından']
-const ACTION_TIMEOUT = 30
+const ACTION_TIMEOUT = 20
 
 function rollDice(min=1,max=20){ return Math.floor(Math.random()*(max-min+1))+min }
 function getRand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
@@ -487,7 +487,7 @@ export default function MatchPage() {
         const shotNarr=shotNarrFn(atkName,'ceza sahasından',0)
         const duelDetail=`[Atak:${atkStat}+🎲${atkRoll1}=${duel1.atkTotal} vs Sav:${defStat+defBonus}+🎲${defRoll1}=${duel1.defTotal}]`
         await insertEvent(m.id,minute,'shot','pending',`${duelDetail} 🥅 ${shotNarr}`,atkUser,defUser)
-        await sleep(15000)
+        await sleep(10000)
 
         const {data:gkActions}=await supabase.from('match_actions').select('*').eq('event_id',attackEvent.id)
         const gkAction=gkActions?.find(a=>a.role==='goalkeeper')
@@ -583,9 +583,9 @@ export default function MatchPage() {
         </div>
         <div style={{textAlign:'center',padding:'0 1.5rem'}}>
           <div style={{fontSize:'2.5rem',fontWeight:900,letterSpacing:'.1em',lineHeight:1}}>
-            <span style={{color:isHome&&homeScore>awayScore?'#10b981':'#fff'}}>{homeScore}</span>
+            <span style={{color:(isHome?homeScore:awayScore)>(isHome?awayScore:homeScore)?'#10b981':'#fff'}}>{isHome?homeScore:awayScore}</span>
             <span style={{color:'#606080',margin:'0 .3rem'}}>-</span>
-            <span style={{color:!isHome&&awayScore>homeScore?'#10b981':'#fff'}}>{awayScore}</span>
+            <span style={{color:(isHome?awayScore:homeScore)>(isHome?homeScore:awayScore)?'#10b981':'#fff'}}>{isHome?awayScore:homeScore}</span>
           </div>
           <div style={{color:isFinished?'#fbbf24':'#606080',fontSize:'.7rem',fontWeight:600}}>{isFinished?'⏱ MAÇ BİTTİ':`⏱ ${matchMinute}'`}</div>
         </div>
