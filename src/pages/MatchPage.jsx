@@ -862,6 +862,26 @@ export default function MatchPage() {
               )
             })}
 
+            {/* Kondisyon Paneli */}
+            <div style={{marginTop:'1rem',marginBottom:'1rem'}}>
+              <div style={{fontSize:'.62rem',color:'#606080',fontWeight:700,letterSpacing:'.08em',marginBottom:'.5rem'}}>OYUNCU KONDİSYONU</div>
+              <div style={{display:'flex',flexDirection:'column',gap:'.25rem'}}>
+                {myLineup.slice(0,11).map((p,i) => {
+                  const stam = isHome ? (homeStamina[p.name]??100) : (awayStamina[p.name]??100)
+                  const stamColor = stam>=80?'#10b981':stam>=60?'#f59e0b':stam>=40?'#ef4444':'#7f1d1d'
+                  return (
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:'.4rem'}}>
+                      <span style={{fontSize:'.6rem',color:'#a0a0c0',minWidth:80,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(p.name||'').split(' ').pop()}</span>
+                      <div style={{flex:1,height:4,background:'#1e1e4a',borderRadius:2,overflow:'hidden'}}>
+                        <div style={{width:`${stam}%`,height:'100%',background:stamColor,transition:'width .5s'}}/>
+                      </div>
+                      <span style={{fontSize:'.58rem',color:stamColor,minWidth:24,textAlign:'right'}}>{stam}%</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             {isFinished && (
               <div style={{marginTop:'1.5rem',textAlign:'center',background:'rgba(124,58,237,.1)',borderRadius:12,padding:'1.25rem',border:'1px solid #7c3aed'}}>
                 <div style={{fontSize:'1.4rem',fontWeight:900,marginBottom:'.4rem',color:(isHome&&homeScore>awayScore)||(!isHome&&awayScore>homeScore)?'#fbbf24':'#a0a0c0'}}>
