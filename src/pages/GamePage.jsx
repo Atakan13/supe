@@ -195,7 +195,10 @@ export default function GamePage() {
 
     setLoading(false)
 
-    if (channelRef.current) supabase.removeChannel(channelRef.current)
+    if (channelRef.current) {
+      await supabase.removeChannel(channelRef.current)
+      channelRef.current = null
+    }
     channelRef.current = supabase.channel('game-' + lb.id)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lb.id}` }, async (p) => {
         setLobby(p.new)

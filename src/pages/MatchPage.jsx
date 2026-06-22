@@ -442,7 +442,7 @@ export default function MatchPage() {
         played: (ex?.played||0)+1, wins: (ex?.wins||0)+(win?1:0),
         draws: (ex?.draws||0)+(draw?1:0), losses: (ex?.losses||0)+(lose?1:0),
         goals_for: (ex?.goals_for||0)+gf, goals_against: (ex?.goals_against||0)+ga,
-        goal_diff: ((ex?.goals_for||0)+gf) - ((ex?.goals_against||0)+ga),
+
         points: (ex?.points||0)+(win?3:draw?1:0),
       }
       if (ex) await supabase.from('season_stats').update(upd).eq('id', ex.id)
@@ -550,14 +550,15 @@ export default function MatchPage() {
     setPhase('waiting')
     if (timerRef.current) clearInterval(timerRef.current)
 
-    await supabase.from('match_actions').insert({
+    const { error: actErr } = await supabase.from('match_actions').upsert({
       match_id: matchId,
       event_id: currentEvent.id,
       user_id: userId,
       role: myRole,
       selected_player_id: selectedPlayer.id || selectedPlayer.name,
       action_choice: selectedAction.id,
-    })
+    }, { onConflict: 'event_id,user_id' })
+    if (actErr) console.error('match_actions error:', actErr)
 
     const statVal = calcPlayerStat(selectedPlayer, selectedAction.stat, myTactics, myRoles)
     const roll = rollDice()
