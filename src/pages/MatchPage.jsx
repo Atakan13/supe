@@ -226,7 +226,15 @@ const ACTION_TIMEOUT = 30
 function rollDice(min=1,max=20){ return Math.floor(Math.random()*(max-min+1))+min }
 function getRand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
 
-function calcPlayerStat(player, stat, tactics, playerRoles) {
+function getStaminaPenalty(stamina) {
+  if (stamina >= 80) return 0
+  if (stamina >= 60) return 3
+  if (stamina >= 40) return 6
+  if (stamina >= 20) return 10
+  return 15
+}
+
+function calcPlayerStat(player, stat, tactics, playerRoles, stamina=100) {
   if (!player) return 50
   let base = player[stat] || 50
   if (tactics) {
@@ -240,6 +248,7 @@ function calcPlayerStat(player, stat, tactics, playerRoles) {
     const bonus = PLAYER_ROLES_BONUS[playerRoles[player.name]]
     if (bonus?.[stat]) base += bonus[stat]
   }
+  base -= getStaminaPenalty(stamina)
   return Math.min(99, Math.max(1, Math.round(base)))
 }
 
@@ -293,6 +302,8 @@ export default function MatchPage() {
   const [timeLeft, setTimeLeft] = useState(ACTION_TIMEOUT)
   const [lastResult, setLastResult] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [homeStamina, setHomeStamina] = useState({})
+  const [awayStamina, setAwayStamina] = useState({})
 
   const [stats, setStats] = useState({
     home: { shots:0, shotsOnTarget:0, possession:50, passes:0, tackles:0 },
@@ -345,6 +356,8 @@ export default function MatchPage() {
     const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', userId).maybeSingle()
     const { data: opS } = await supabase.from('squads').select('*').eq('lobby_id', m.lobby_id).eq('user_id', opId).maybeSingle()
     setMySquad(myS); setOpSquad(opS)
+    setHomeStamina(m.home_stamina||{})
+    setAwayStamina(m.away_stamina||{})
     setMyTactics(myS?.tactics||{}); setMyRoles(myS?.player_roles||{})
     setOpTactics(opS?.tactics||{}); setOpRoles(opS?.player_roles||{})
     setLoading(false)
@@ -356,6 +369,8 @@ export default function MatchPage() {
       .on('postgres_changes', {event:'UPDATE',schema:'public',table:'matches',filter:`id=eq.${matchId}`}, p => {
         const u = p.new
         setHomeScore(u.home_score||0); setAwayScore(u.away_score||0)
+        setHomeStamina(u.home_stamina||{})
+        setAwayStamina(u.away_stamina||{})
         if (u.status==='finished') {
           setIsFinished(true); setPhase('watching')
           addCommentary('🏁 MAÇ SONA ERDİ!', 'goal')
@@ -504,6 +519,31 @@ export default function MatchPage() {
     const awayStrength=calcTeamStrength(awayLineup,awayTactics,awayRoles)
     const totalStr=homeStrength+awayStrength
 
+    // Kondisyon sistemi - her oyuncu 100'den başlar
+    const stamina = {}
+    const allPlayers = [...homeLineup, ...awayLineup].filter(Boolean)
+    allPlayers.forEach(p => { if(p.name) stamina[p.name] = 100 })
+
+    const updateStamina = async (playerName, loss) => {
+      if (!playerName || !stamina[playerName]) return
+      stamina[playerName] = Math.max(0, stamina[playerName] - loss)
+      // Home/away ayrımı yaparak Supabase'e kaydet
+      const homeNames = homeLineup.filter(Boolean).map(p=>p.name)
+      const awayNames = awayLineup.filter(Boolean).map(p=>p.name)
+      const homeStam = {}
+      const awayStam = {}
+      Object.entries(stamina).forEach(([name, val]) => {
+        if (homeNames.includes(name)) homeStam[name] = val
+        else if (awayNames.includes(name)) awayStam[name] = val
+      })
+      await supabase.from('matches').update({
+        home_stamina: homeStam,
+        away_stamina: awayStam,
+      }).eq('id', m.id)
+    }
+
+    const getStamina = (playerName) => stamina[playerName] ?? 100
+
     await insertEvent(m.id,0,'narrative','resolved',`Maç başlıyor! ${homeUser.team_name} sahaya çıkıyor.`)
     await sleep(2000)
     await insertEvent(m.id,0,'narrative','resolved',`${awayUser.team_name} hazır. Mücadele başlıyor!`)
@@ -585,9 +625,15 @@ export default function MatchPage() {
       const atkCardPlayer = PLAYER_CARDS.find(c=>c.name===atkPlayer?.name)||atkPlayer
       const defCardPlayer = PLAYER_CARDS.find(c=>c.name===defPlayer?.name)||defPlayer
 
-      const atkStat = calcPlayerStat(atkCardPlayer, atkActionDef.atkStat, atkTactics, atkRoles)
-      const defStat = calcPlayerStat(defCardPlayer, defActionDef?.stat||'defending', defTactics, defRoles)
+      const atkStamina = getStamina(atkPlayer?.name)
+      const defStamina = getStamina(defPlayer?.name)
+      const atkStat = calcPlayerStat(atkCardPlayer, atkActionDef.atkStat, atkTactics, atkRoles, atkStamina)
+      const defStat = calcPlayerStat(defCardPlayer, defActionDef?.stat||'defending', defTactics, defRoles, defStamina)
       const defBonus = defActionDef?.statBonus||0
+
+      // Kondisyon göster spikere
+      if (atkStamina < 60) addCommentary(`⚠️ ${(atkPlayer?.name||'').split(' ').pop()} yorgunluk hissediyor! (Kondisyon: %${atkStamina})`, 'normal')
+      if (defStamina < 60) addCommentary(`⚠️ ${(defPlayer?.name||'').split(' ').pop()} yoruldu! (Kondisyon: %${defStamina})`, 'normal')
 
       const atkRoll1 = rollDice()
       const defRoll1 = rollDice()
@@ -600,6 +646,11 @@ export default function MatchPage() {
       const atkNarr = atkNarrFn(atkName, zone, duel1.diff)
       const defName = (defPlayer?.name||defTeamName).split(' ').pop()
       const defNarr = defNarrFn ? defNarrFn(defName, diff1) : null
+
+      // Kondisyon düşür
+      const sprintLoss = (atkAction?.action_choice === 'sprint') ? 8 : 5
+      await updateStamina(atkPlayer?.name, sprintLoss)
+      await updateStamina(defPlayer?.name, 5)
 
       if (duel1.atkWins) {
         // Atakçı kazandı — şuta geç
@@ -621,8 +672,9 @@ export default function MatchPage() {
         const gkCardPlayer = PLAYER_CARDS.find(c=>c.name===gkPlayer?.name)||gkPlayer
         const gkActionDef = GK_ACTION_DEFS[gkAction?.action_choice||'dive']
 
-        const shootStat = calcPlayerStat(atkCardPlayer, 'shooting', atkTactics, atkRoles)
-        const gkStat = calcPlayerStat(gkCardPlayer, 'goalkeeper', defTactics, defRoles)
+        const shootStat = calcPlayerStat(atkCardPlayer, 'shooting', atkTactics, atkRoles, getStamina(atkPlayer?.name))
+        const gkStat = calcPlayerStat(gkCardPlayer, 'goalkeeper', defTactics, defRoles, getStamina(gkPlayer?.name))
+        await updateStamina(gkPlayer?.name, 3)
         const gkBonus = gkActionDef?.statBonus||0
         // Kontratak güçlendirmesi
         const counterBonus = atkTactics.buildup==='counter' ? 4 : 0
@@ -861,6 +913,26 @@ export default function MatchPage() {
                 </div>
               )
             })}
+
+            {/* Kondisyon Paneli */}
+            <div style={{marginTop:'1rem',marginBottom:'1rem'}}>
+              <div style={{fontSize:'.62rem',color:'#606080',fontWeight:700,letterSpacing:'.08em',marginBottom:'.5rem'}}>OYUNCU KONDİSYONU</div>
+              <div style={{display:'flex',flexDirection:'column',gap:'.25rem'}}>
+                {myLineup.slice(0,11).map((p,i) => {
+                  const stam = isHome ? (homeStamina[p.name]??100) : (awayStamina[p.name]??100)
+                  const stamColor = stam>=80?'#10b981':stam>=60?'#f59e0b':stam>=40?'#ef4444':'#7f1d1d'
+                  return (
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:'.4rem'}}>
+                      <span style={{fontSize:'.6rem',color:'#a0a0c0',minWidth:80,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(p.name||'').split(' ').pop()}</span>
+                      <div style={{flex:1,height:4,background:'#1e1e4a',borderRadius:2,overflow:'hidden'}}>
+                        <div style={{width:`${stam}%`,height:'100%',background:stamColor,transition:'width .5s'}}/>
+                      </div>
+                      <span style={{fontSize:'.58rem',color:stamColor,minWidth:24,textAlign:'right'}}>{stam}%</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* Kondisyon Paneli */}
             <div style={{marginTop:'1rem',marginBottom:'1rem'}}>
