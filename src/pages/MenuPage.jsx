@@ -361,17 +361,17 @@ export default function MenuPage() {
       const lobbyCode = genCode()
       const { data: lobby, error: le } = await supabase.from('lobbies').insert({
         code: lobbyCode,
-        host_user_id: userId,
+        host_id: userId,
         formation: c.formation || '4-4-2',
         budget: c.budget || 300000000,
-        league: c.league || 'all',
-        status: 'waiting',
+        
+        
       }).select().single()
       if (le) throw le
       await supabase.from('lobby_players').insert({
         lobby_id: lobby.id,
         user_id: userId,
-        manager_name: c.managerName,
+        user_name: c.managerName, manager_name: c.managerName,
         team_name: c.clubName,
         logo: c.logo || null,
         kit: c.kit || null,
@@ -398,7 +398,7 @@ export default function MenuPage() {
       const lobby = lobbies[0]
       const { error: pe } = await supabase.from('lobby_players').insert({
         lobby_id: lobby.id, user_id: userId,
-        manager_name: c.managerName, team_name: c.clubName,
+        user_name: c.managerName, manager_name: c.managerName, team_name: c.clubName,
         logo: c.logo || null, kit: c.kit || null,
         manager_style: c.managerStyle || null,
         is_host: false, is_ready: false,
