@@ -400,7 +400,6 @@ export default function MatchPage() {
       Object.entries(stamina).forEach(([n,v])=>{ if(homeNames.includes(n)) hStam[n]=v; else aStam[n]=v })
       await supabase.from('matches').update({home_stamina:hStam,away_stamina:aStam}).eq('id',m.id)
     }
-    const getStam=name=>stamina[name]??100
 
     await insertEvent(m.id,0,'narrative','resolved',`Maç başlıyor! ${homeUser.team_name} sahaya çıkıyor.`)
     await sleep(2000)
@@ -443,7 +442,6 @@ export default function MatchPage() {
       else if(atkTactics.attack_width==='central') zonePool=['orta sahadan','ceza sahasından']
       const zone=getRand(zonePool)
 
-      const atkName=(atkPlayer?.name||atkTeamName).split(' ').pop()
       const atkActionKey=getRand(Object.keys(ATK_NARR))
       const narrFn=getRand(ATK_NARR[atkActionKey])
       const narrative=narrFn(atkName,zone,0)
@@ -528,7 +526,6 @@ export default function MatchPage() {
         }
       } else {
         const defNarrFn=defAction?getRand(DEF_NARR[defAction.action_choice]||DEF_NARR.tackle):getRand(DEF_NARR.tackle)
-        const defName=(defPlayer?.name||defTeamName).split(' ').pop()
         const defNarr=defNarrFn(defName,Math.abs(duel1.diff))
         await supabase.from('match_events').update({
           action_phase:'resolved',result:'attack_fail',
