@@ -83,10 +83,12 @@ function getBestPlayerForPos(pos, players, usedNames) {
     ST:  ['ST','CF'],
     CF:  ['CF','ST'],
   }
+  // #9 - hem squad_pos hem position'a bak
   const preferred = posGroups[pos] || [pos]
   const available = players.filter(p => !usedNames.has(p.name))
   for (const pref of preferred) {
-    const found = available.filter(p => p.position === pref).sort((a,b) => b.overall - a.overall)
+    // #9 - squad_pos ve position her ikisine bak
+    const found = available.filter(p => (p.squad_pos||p.position) === pref || p.position === pref).sort((a,b) => b.overall - a.overall)
     if (found.length > 0) return found[0]
   }
   return available.sort((a,b) => b.overall - a.overall)[0] || null
