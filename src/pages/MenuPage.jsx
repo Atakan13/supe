@@ -437,7 +437,7 @@ export default function MenuPage() {
 
   // ANA EKRAN — kulüp mevcut
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a1a', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative', overflow:'hidden' }}>
+    <div style={{ minHeight:'100vh', background:'rgba(10,10,26,0.55)', backgroundImage:'url(/bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'fixed', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 50% at 20% 50%,rgba(124,58,237,.15) 0%,transparent 70%)' }}/>
       <div style={{ width:'100%', maxWidth:580, position:'relative', zIndex:1 }}>
 
