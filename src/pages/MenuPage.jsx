@@ -663,6 +663,18 @@ export default function MenuPage() {
 
             {/* Butonlar */}
             <div style={{ display:'flex', flexDirection:'column', gap:'.6rem' }}>
+              {/* Bütçe seçimi */}
+              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'.75rem' }}>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:8 }}>TRANSFER BÜTÇESİ</div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:5 }}>
+                  {[{l:'€100M',v:100000000},{l:'€300M',v:300000000},{l:'€600M',v:600000000},{l:'∞',v:999999999999}].map(b=>(
+                    <div key={b.v} onClick={()=>setSelectedBudget(b.v)}
+                      style={{ padding:'6px 2px', borderRadius:6, border:`1.5px solid ${selectedBudget===b.v?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:selectedBudget===b.v?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.03)', cursor:'pointer', textAlign:'center', transition:'all .15s' }}>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, color:selectedBudget===b.v?'#a78bfa':'rgba(255,255,255,0.4)', letterSpacing:1 }}>{b.l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <button onClick={handleCreateLobby} disabled={loading}
                 style={{ padding:'.9rem', borderRadius:9, border:'none', background:'linear-gradient(135deg,#5b21b6,#7c3aed,#8b5cf6)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:3, cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 6px 20px rgba(124,58,237,0.4)' }}>
                 <div style={{ position:'absolute', top:0, left:'-100%', width:'60%', height:'100%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation:'shimmer 2.5s ease-in-out infinite' }}/>
