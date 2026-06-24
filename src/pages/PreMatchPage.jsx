@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { LogoPreview } from './MenuPage'
+import { playSound } from '../lib/sounds'
 
 function getUserId() {
   let id = localStorage.getItem('draft_user_id')
@@ -40,6 +41,7 @@ export default function PreMatchPage() {
         if (prev <= 1) {
           clearInterval(interval)
           setPhase('go')
+          playSound('whistle')
           setTimeout(() => navigate(`/match/${matchId}`, { replace: true }), 800)
           return 0
         }

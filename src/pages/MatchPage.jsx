@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { PLAYER_CARDS } from '../lib/playerCards'
+import { playSound, startAmbient, stopAmbient } from '../lib/sounds'
 
 function getUserId() {
   let id = localStorage.getItem('draft_user_id')
@@ -256,6 +257,8 @@ export default function MatchPage() {
         if(u.status==='finished'){
           setIsFinished(true); setPhase('watching')
           addCommentary('🏁 MAÇ SONA ERDİ!','goal')
+          playSound('whistle')
+          stopAmbient()
           updateSeasonStats(u,m.lobby_id,pl||[])
           generateMatchReport(u, matchId)
         }
@@ -300,6 +303,7 @@ export default function MatchPage() {
     if(ev.event_type==='narrative'){ addCommentary(ev.narrative_text||'','normal'); return }
     if(ev.event_type==='goal'){
       addCommentary(`⚽ ${ev.narrative_text||'GOL!'}`, 'goal')
+      playSound('goal')
       setStats(prev=>{ const isHome=ev.attacking_user===m?.home_user_id; const s=isHome?'home':'away'; return {...prev,[s]:{...prev[s],shots:(prev[s].shots||0)+1,shotsOnTarget:(prev[s].shotsOnTarget||0)+1}} })
       return
     }
