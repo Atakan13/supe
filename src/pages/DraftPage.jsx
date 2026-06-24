@@ -389,17 +389,85 @@ export default function DraftPage() {
       <div style={{ position:'absolute', width:500, height:500, background:'radial-gradient(circle, rgba(0,100,255,0.07) 0%, transparent 70%)', top:-150, left:-150, pointerEvents:'none', zIndex:0 }}/>
 
       {/* SIRA BAR */}
-      <div style={{ padding:'.6rem 1.25rem', background: isMyTurn ? 'rgba(0,200,255,0.08)' : 'rgba(0,0,0,0.7)', borderBottom: isMyTurn ? '1px solid rgba(0,200,255,0.25)' : '1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'relative', zIndex:10 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
-          <div style={{ width:8, height:8, borderRadius:'50%', background:isMyTurn?'#00c8ff':'#f59e0b', animation:isMyTurn?'blink 1s infinite':'none', boxShadow:isMyTurn?'0 0 8px #00c8ff':'none' }}/>
-          <span style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:15, letterSpacing:2, color:isMyTurn?'#00c8ff':'rgba(255,255,255,0.4)' }}>
-            {isMyTurn ? '⚡ SIRA SENİN — TIKLAYARAK SEÇ' : `⏳ ${turnName.toUpperCase()} SEÇİYOR...`}
-          </span>
+      <div style={{ padding:'.5rem 1.25rem', background:'rgba(0,0,0,0.7)', borderBottom:'1px solid rgba(255,255,255,0.05)', flexShrink:0, position:'relative', zIndex:10 }}>
+        {/* Üst satır: durum + sayaçlar */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'.75rem' }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:isMyTurn?'#00c8ff':'#f59e0b', animation:isMyTurn?'blink 1s infinite':'none', boxShadow:isMyTurn?'0 0 8px #00c8ff':'none' }}/>
+            <span style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:15, letterSpacing:2, color:isMyTurn?'#00c8ff':'rgba(255,255,255,0.4)' }}>
+              {isMyTurn ? '⚡ SIRA SENİN — TIKLAYARAK SEÇ' : `⏳ ${turnName.toUpperCase()} SEÇİYOR...`}
+            </span>
+          </div>
+          <div style={{ display:'flex', gap:'1.5rem', fontSize:12 }}>
+            <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>PİCK <strong style={{ color:'#fff' }}>{picks.length+1}/36</strong></span>
+            <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>BÜTÇE <strong style={{ color:'#00c8ff' }}>€{(budget/1e6).toFixed(0)}M</strong></span>
+            <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>SEÇİLEN <strong style={{ color:'#fff' }}>{myPicks.length}/18</strong></span>
+          </div>
         </div>
-        <div style={{ display:'flex', gap:'1.5rem', fontSize:12 }}>
-          <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>PİCK <strong style={{ color:'#fff' }}>{picks.length+1}/36</strong></span>
-          <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>BÜTÇE <strong style={{ color:'#00c8ff' }}>€{(budget/1e6).toFixed(0)}M</strong></span>
-          <span style={{ color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue', sans-serif", letterSpacing:1 }}>SEÇİLEN <strong style={{ color:'#fff' }}>{myPicks.length}/18</strong></span>
+
+        {/* Snake draft sırası görseli */}
+        <div style={{ display:'flex', alignItems:'center', gap:3, overflowX:'auto', paddingBottom:2 }}>
+          {Array.from({length:36},(_,i) => {
+            const cycle = lobbyPlayers.length * 2
+            const pos = i % cycle
+            const roundIdx = pos < lobbyPlayers.length ? pos : cycle-1-pos
+            const owner = lobbyPlayers[roundIdx]
+            const isMe = owner?.user_id === userId
+            const isPicked = i < picks.length
+            const isCurrent = i === picks.length
+            const pick = picks[i]
+            const cardType = pick ? getCardType(
+              PLAYER_CARDS.find(c=>c.id===pick.player_card_id)?.overall || 70
+            ) : null
+            const dotColor = isPicked
+              ? (cardType==='special'?'#00c8ff':cardType==='gold'?'#f5e663':cardType==='silver'?'#c0c0c0':'#cd7f32')
+              : isCurrent
+              ? (isMe?'#00c8ff':'#f59e0b')
+              : 'rgba(255,255,255,0.08)'
+
+            return (
+              <div key={i} style={{ position:'relative', flexShrink:0 }}>
+                {/* Round ayrıcı çizgi */}
+                {i>0 && i%lobbyPlayers.length===0 && (
+                  <div style={{ position:'absolute', left:-2, top:0, bottom:0, width:1, background:'rgba(255,255,255,0.1)' }}/>
+                )}
+                <div style={{
+                  width: isCurrent?18:14,
+                  height: isCurrent?18:14,
+                  borderRadius: isCurrent?4:3,
+                  background: dotColor,
+                  border: isCurrent?`2px solid ${isMe?'#00c8ff':'#f59e0b'}`:'none',
+                  boxShadow: isCurrent?`0 0 8px ${isMe?'#00c8ff':'#f59e0b'}`:'none',
+                  opacity: i > picks.length + 8 ? 0.4 : 1,
+                  transition:'all .2s',
+                  position:'relative',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                }}>
+                  {isPicked && isMe && (
+                    <div style={{ width:6, height:6, borderRadius:'50%', background:'rgba(0,0,0,0.5)' }}/>
+                  )}
+                </div>
+                {/* Tooltip: pick numarası */}
+                {isCurrent && (
+                  <div style={{ position:'absolute', top:22, left:'50%', transform:'translateX(-50%)', fontFamily:"'Bebas Neue',sans-serif", fontSize:8, letterSpacing:1, color:isMe?'#00c8ff':'#f59e0b', whiteSpace:'nowrap' }}>
+                    {i+1}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          
+          {/* Legend */}
+          <div style={{ marginLeft:12, display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:3 }}>
+              <div style={{ width:10, height:10, borderRadius:2, background:'rgba(0,200,255,0.3)', border:'1px solid #00c8ff' }}/>
+              <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:8, letterSpacing:1, color:'rgba(255,255,255,0.25)' }}>SEN</span>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:3 }}>
+              <div style={{ width:10, height:10, borderRadius:2, background:'rgba(245,158,11,0.3)', border:'1px solid #f59e0b' }}/>
+              <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:8, letterSpacing:1, color:'rgba(255,255,255,0.25)' }}>RAKİP</span>
+            </div>
+          </div>
         </div>
       </div>
 
