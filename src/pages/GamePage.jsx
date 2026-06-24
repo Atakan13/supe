@@ -185,7 +185,7 @@ export default function GamePage() {
       setUnassigned(autoUnassigned)
     }
 
-    const { data: standingsStats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
+    const { data: stats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
     setStandingsData(stats || [])
 
     const teams = (pl || []).map(p => p.team_name)
