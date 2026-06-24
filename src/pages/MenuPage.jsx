@@ -255,58 +255,119 @@ function ClubEditor({ initialClub, onSave, onCancel, showLobbyTab = true }) {
 
         {/* LOGO */}
         {tab==='logo' && (
-          <div style={{ display:'flex', gap:'2rem' }}>
-            <div style={{ flex:1, display:'flex', flexDirection:'column', gap:'1.1rem' }}>
-              <div>
-                <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>ŞEKİL</label>
-                <div style={{ display:'flex', gap:'.4rem', flexWrap:'wrap' }}>
-                  {LOGO_SHAPES.map(s => (
-                    <button key={s} onClick={() => setLogoShape(s)}
-                      style={{ padding:'.4rem .75rem', borderRadius:8, border:`2px solid ${logoShape===s?'#7c3aed':'#2a2a5a'}`, background:logoShape===s?'rgba(124,58,237,.2)':'#0f0f2a', color:logoShape===s?'#a78bfa':'#606080', fontWeight:700, fontSize:'.73rem', cursor:'pointer' }}>
-                      {s==='circle'?'Daire':s==='shield'?'Kalkan':s==='diamond'?'Elmas':s==='hexagon'?'Altıgen':'Kare'}
-                    </button>
-                  ))}
+          <div style={{ margin:'-2rem', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'220px 1fr 220px', minHeight:420, position:'relative' }}>
+
+              {/* Stadyum arka plan */}
+              <div style={{ position:'absolute', inset:0, backgroundImage:'url(/assets/stadium_bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', zIndex:0 }}/>
+              <div style={{ position:'absolute', inset:0, background:'rgba(5,5,20,0.82)', zIndex:1 }}/>
+
+              {/* SOL PANEL: Şekil + İkon */}
+              <div style={{ position:'relative', zIndex:2, background:'rgba(0,0,0,0.55)', borderRight:'1px solid rgba(255,255,255,0.06)', padding:'1.25rem', display:'flex', flexDirection:'column', gap:'1.25rem', backdropFilter:'blur(10px)' }}>
+                <div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:10 }}>ARMA ŞEKLİ</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                    {[
+                      {id:'shield', label:'Modern'}, {id:'circle', label:'Klasik'},
+                      {id:'hexagon', label:'Altıgen'}, {id:'diamond', label:'Elmas'},
+                      {id:'square', label:'Kare'},
+                    ].map(({id, label}) => (
+                      <div key={id} onClick={() => setLogoShape(id)}
+                        style={{ background: logoShape===id ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.05)', border:`1px solid ${logoShape===id?'#7c3aed':'rgba(255,255,255,0.08)'}`, borderRadius:8, padding:'8px 6px', cursor:'pointer', textAlign:'center', transition:'all .15s' }}>
+                        <div style={{ marginBottom:4, display:'flex', justifyContent:'center' }}>
+                          <svg width={32} height={32} viewBox="0 0 32 32">
+                            {id==='shield' && <path d="M16,2 L28,7 L28,18 Q28,26 16,30 Q4,26 4,18 L4,7 Z" fill={logoShape===id?'#7c3aed':'rgba(255,255,255,0.15)'} stroke={logoShape===id?'#a78bfa':'rgba(255,255,255,0.2)'} strokeWidth={1}/>}
+                            {id==='circle' && <circle cx={16} cy={16} r={13} fill={logoShape===id?'#7c3aed':'rgba(255,255,255,0.15)'} stroke={logoShape===id?'#a78bfa':'rgba(255,255,255,0.2)'} strokeWidth={1}/>}
+                            {id==='hexagon' && <path d="M16,2 L28,9 L28,23 L16,30 L4,23 L4,9 Z" fill={logoShape===id?'#7c3aed':'rgba(255,255,255,0.15)'} stroke={logoShape===id?'#a78bfa':'rgba(255,255,255,0.2)'} strokeWidth={1}/>}
+                            {id==='diamond' && <path d="M16,2 L30,16 L16,30 L2,16 Z" fill={logoShape===id?'#7c3aed':'rgba(255,255,255,0.15)'} stroke={logoShape===id?'#a78bfa':'rgba(255,255,255,0.2)'} strokeWidth={1}/>}
+                            {id==='square' && <rect x={3} y={3} width={26} height={26} rx={3} fill={logoShape===id?'#7c3aed':'rgba(255,255,255,0.15)'} stroke={logoShape===id?'#a78bfa':'rgba(255,255,255,0.2)'} strokeWidth={1}/>}
+                          </svg>
+                        </div>
+                        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color: logoShape===id?'#a78bfa':'rgba(255,255,255,0.35)', letterSpacing:0.5 }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:10 }}>MERKEZ İKON</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:5 }}>
+                    {LOGO_ICONS.map(icon => (
+                      <button key={icon} onClick={() => setLogoIcon(icon)}
+                        style={{ width:'100%', aspectRatio:'1', borderRadius:7, border:`1.5px solid ${logoIcon===icon?'#7c3aed':'rgba(255,255,255,0.08)'}`, background:logoIcon===icon?'rgba(124,58,237,0.25)':'rgba(255,255,255,0.04)', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div>
-                <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>İKON</label>
-                <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
-                  {LOGO_ICONS.map(icon => (
-                    <button key={icon} onClick={() => setLogoIcon(icon)}
-                      style={{ width:36, height:36, borderRadius:8, border:`2px solid ${logoIcon===icon?'#7c3aed':'#2a2a5a'}`, background:logoIcon===icon?'rgba(124,58,237,.2)':'#0f0f2a', fontSize:'1rem', cursor:'pointer' }}>
-                      {icon}
-                    </button>
-                  ))}
+
+              {/* ORTA: Logo önizleme */}
+              <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem' }}>
+                {/* Spot ışığı */}
+                <div style={{ position:'absolute', bottom:0, left:'20%', right:'20%', height:'40%', background:'radial-gradient(ellipse at bottom, rgba(124,58,237,0.25) 0%, transparent 70%)', pointerEvents:'none' }}/>
+                <div style={{ position:'absolute', top:'10%', left:'50%', transform:'translateX(-50%)', width:200, height:200, background:'radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)', pointerEvents:'none' }}/>
+
+                {/* Platform */}
+                <div style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
+                  {/* Logo büyük önizleme */}
+                  <div style={{ filter:'drop-shadow(0 0 30px rgba(124,58,237,0.5)) drop-shadow(0 20px 40px rgba(0,0,0,0.8))', transform:'perspective(600px) rotateX(5deg)', marginBottom:12 }}>
+                    <LogoPreview shape={logoShape} icon={logoIcon} bgColor={logoBg} accentColor={logoAccent} size={160}/>
+                  </div>
+                  {/* Metalik highlight overlay */}
+                  <div style={{ position:'absolute', top:0, left:'10%', width:'80%', height:'45%', background:'linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 100%)', pointerEvents:'none', borderRadius:8 }}/>
+
+                  {/* Platform tabanı */}
+                  <div style={{ width:120, height:8, background:'radial-gradient(ellipse, rgba(124,58,237,0.6) 0%, transparent 70%)', borderRadius:'50%', filter:'blur(4px)' }}/>
+                  <div style={{ width:80, height:3, background:'rgba(255,255,255,0.1)', borderRadius:2, marginTop:-2 }}/>
+                </div>
+
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:3, color:'rgba(255,255,255,0.7)' }}>{clubName||'KULÜP ADI'}</div>
+                  <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.25)', letterSpacing:2, marginTop:2 }}>EST. 2024</div>
+                </div>
+
+                <button onClick={() => setTab('kit')}
+                  style={{ padding:'10px 28px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6d28d9,#7c3aed)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, cursor:'pointer', boxShadow:'0 6px 20px rgba(124,58,237,0.4)' }}>
+                  SONRAKI: FORMA →
+                </button>
+              </div>
+
+              {/* SAĞ PANEL: Renkler */}
+              <div style={{ position:'relative', zIndex:2, background:'rgba(0,0,0,0.55)', borderLeft:'1px solid rgba(255,255,255,0.06)', padding:'1.25rem', display:'flex', flexDirection:'column', gap:'1.25rem', backdropFilter:'blur(10px)' }}>
+                <div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:10 }}>BİRİNCİL RENK</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5, marginBottom:6 }}>
+                    {LOGO_BG_COLORS.map(c => (
+                      <button key={c} onClick={() => setLogoBg(c)}
+                        style={{ width:'100%', aspectRatio:'1', borderRadius:6, background:c, border:`2px solid ${logoBg===c?'#fff':'transparent'}`, cursor:'pointer', boxShadow:logoBg===c?`0 0 8px ${c}`:'none' }}/>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:10 }}>VURGU / İKİNCİL</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:5 }}>
+                    {LOGO_ACCENT_COLORS.map(c => (
+                      <button key={c} onClick={() => setLogoAccent(c)}
+                        style={{ width:'100%', aspectRatio:'1', borderRadius:6, background:c, border:`2px solid ${logoAccent===c?'#fff':'transparent'}`, cursor:'pointer', boxShadow:logoAccent===c?`0 0 8px ${c}`:'none' }}/>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Önizleme renk bloğu */}
+                <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'12px', display:'flex', gap:8, alignItems:'center' }}>
+                  <div style={{ width:32, height:32, borderRadius:6, background:logoBg, border:'2px solid rgba(255,255,255,0.2)' }}/>
+                  <div style={{ flex:1, height:32, borderRadius:6, background:`linear-gradient(90deg,${logoBg},${logoAccent})` }}/>
+                  <div style={{ width:32, height:32, borderRadius:6, background:logoAccent, border:'2px solid rgba(255,255,255,0.2)' }}/>
+                </div>
+
+                <div style={{ marginTop:'auto' }}>
+                  <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.25)', letterSpacing:0.5, textAlign:'center', lineHeight:1.5 }}>
+                    Katmanlar üst üste binerek logonu oluşturur
+                  </div>
                 </div>
               </div>
-              <div>
-                <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>ARKAPLAN</label>
-                <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
-                  {LOGO_BG_COLORS.map(c => (
-                    <button key={c} onClick={() => setLogoBg(c)}
-                      style={{ width:28, height:28, borderRadius:'50%', background:c, border:`3px solid ${logoBg===c?'#fff':'transparent'}`, cursor:'pointer' }}/>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>VURGU</label>
-                <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
-                  {LOGO_ACCENT_COLORS.map(c => (
-                    <button key={c} onClick={() => setLogoAccent(c)}
-                      style={{ width:28, height:28, borderRadius:'50%', background:c, border:`3px solid ${logoAccent===c?'#fff':'transparent'}`, cursor:'pointer' }}/>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'1rem', minWidth:150 }}>
-              <div style={{ background:'#0f0f2a', borderRadius:16, padding:'1.25rem', border:'1px solid #2a2a5a', display:'flex', flexDirection:'column', alignItems:'center', gap:'.6rem' }}>
-                <LogoPreview shape={logoShape} icon={logoIcon} bgColor={logoBg} accentColor={logoAccent} size={90}/>
-                <div style={{ fontWeight:800, fontSize:'.82rem', textAlign:'center', maxWidth:120, wordBreak:'break-word' }}>{clubName||'Kulüp'}</div>
-              </div>
-              <button onClick={() => setTab('kit')}
-                style={{ width:'100%', padding:'.7rem', borderRadius:10, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, cursor:'pointer' }}>
-                Sonraki: Forma →
-              </button>
             </div>
           </div>
         )}
