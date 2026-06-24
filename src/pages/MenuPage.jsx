@@ -487,7 +487,7 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [selectedBudget, setSelectedBudget] = useState(999999999999)
-  const [selectedFormation, setSelectedFormation] = useState(club?.formation||'4-3-3')
+  const [selectedFormation, setSelectedFormation] = useState('4-3-3')
 
   const club = getClub()
 
