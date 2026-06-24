@@ -10,12 +10,14 @@ export default function IntroPage() {
     if (!video) return
 
     video.play().catch(() => {
+      sessionStorage.setItem('intro_shown', '1')
       const dest = sessionStorage.getItem('intro_redirect') || '/menu'
       sessionStorage.removeItem('intro_redirect')
       navigate(dest, { replace: true })
     })
 
     const handleEnd = () => {
+      sessionStorage.setItem('intro_shown', '1')
       const dest = sessionStorage.getItem('intro_redirect') || '/menu'
       sessionStorage.removeItem('intro_redirect')
       navigate(dest, { replace: true })
@@ -28,6 +30,7 @@ export default function IntroPage() {
   return (
     <div
       onClick={() => {
+        sessionStorage.setItem('intro_shown', '1')
         const dest = sessionStorage.getItem('intro_redirect') || '/menu'
         sessionStorage.removeItem('intro_redirect')
         navigate(dest, { replace: true })
