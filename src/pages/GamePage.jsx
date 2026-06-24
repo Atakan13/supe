@@ -690,42 +690,76 @@ export default function GamePage() {
         {/* PUAN TABLOSU */}
         {activeTab === 'standings' && (
           <div style={{ padding:'1.5rem', maxWidth:700, margin:'0 auto' }}>
-            <div style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:14, overflow:'hidden' }}>
-              <div style={{ padding:'1rem 1.25rem', borderBottom:'1px solid #1e1e4a' }}>
-                <div style={{ fontSize:'.7rem', color:'#606080', fontWeight:700, letterSpacing:'.08em' }}>PUAN TABLOSU</div>
+            <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(0,200,255,0.12)', borderRadius:14, overflow:'hidden', boxShadow:'0 8px 30px rgba(0,0,0,0.4)' }}>
+              
+              {/* Başlık */}
+              <div style={{ padding:'1rem 1.25rem', borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(0,0,0,0.3)', display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontSize:18 }}>🏆</span>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:3, color:'rgba(255,255,255,0.6)' }}>PUAN TABLOSU</div>
               </div>
-              <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                <thead>
-                  <tr style={{ background:'#0f0f2a' }}>
-                    {['#','Takım','O','G','B','M','AG','YG','AV','P'].map(h => (
-                      <th key={h} style={{ padding:'.6rem .75rem', textAlign:h==='Takım'?'left':'center', fontSize:'.68rem', color:'#606080', fontWeight:700 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {lobbyPlayers.map((player, i) => {
-                    const stat = standings.find(s=>s.user_id===player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
-                    const isMe = player.user_id === userId
-                    const av = (stat.goals_for||0)-(stat.goals_against||0)
-                    return (
-                      <tr key={player.id} style={{ borderTop:'1px solid #1e1e4a', background:isMe?'rgba(124,58,237,.08)':'transparent' }}>
-                        <td style={{ padding:'.6rem .75rem', textAlign:'center', fontWeight:800, color:i===0?'#fbbf24':'#606080' }}>{i+1}</td>
-                        <td style={{ padding:'.6rem .75rem' }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:'.5rem' }}>
-                            <LogoMini logo={isMe?club?.logo:null} size={22}/>
-                            <span style={{ fontWeight:isMe?700:400, fontSize:'.85rem' }}>{player.team_name}</span>
-                            {isMe && <span style={{ fontSize:'.6rem', color:'#7c3aed', fontWeight:700 }}>(sen)</span>}
-                          </div>
-                        </td>
-                        {[stat.played,stat.wins,stat.draws,stat.losses,stat.goals_for,stat.goals_against,av>0?`+${av}`:av].map((v,j)=>(
-                          <td key={j} style={{ padding:'.6rem .75rem', textAlign:'center', fontSize:'.85rem', color:'#a0a0c0' }}>{v}</td>
-                        ))}
-                        <td style={{ padding:'.6rem .75rem', textAlign:'center', fontWeight:800, fontSize:'.9rem', color:'#a78bfa' }}>{stat.points||0}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+
+              {/* Header */}
+              <div style={{ display:'grid', gridTemplateColumns:'30px 1fr 36px 36px 36px 36px 36px 36px 44px 44px', padding:'.5rem 1rem', background:'rgba(0,0,0,0.2)', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                {['#','TAKIM','O','G','B','M','AG','YG','AV','P'].map((h,i) => (
+                  <div key={h} style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:2, color:'rgba(255,255,255,0.25)', textAlign:i<=1?'left':'center' }}>{h}</div>
+                ))}
+              </div>
+
+              {/* Satırlar - puana göre sırala */}
+              {[...lobbyPlayers]
+                .map(player => {
+                  const stat = standings.find(s=>s.user_id===player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
+                  const av = (stat.goals_for||0)-(stat.goals_against||0)
+                  return { player, stat, av }
+                })
+                .sort((a,b) => {
+                  if ((b.stat.points||0) !== (a.stat.points||0)) return (b.stat.points||0)-(a.stat.points||0)
+                  if (b.av !== a.av) return b.av - a.av
+                  return (b.stat.goals_for||0)-(a.stat.goals_for||0)
+                })
+                .map(({ player, stat, av }, i) => {
+                  const isMe = player.user_id === userId
+                  const isFirst = i === 0
+                  return (
+                    <div key={player.id} style={{ display:'grid', gridTemplateColumns:'30px 1fr 36px 36px 36px 36px 36px 36px 44px 44px', padding:'.75rem 1rem', borderBottom:'1px solid rgba(255,255,255,0.04)', background:isMe?'rgba(0,200,255,0.05)':'transparent', transition:'background .15s' }}>
+                      {/* Sıra */}
+                      <div style={{ display:'flex', alignItems:'center' }}>
+                        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, color:isFirst?'#ffd700':isMe?'#00c8ff':'rgba(255,255,255,0.3)', fontWeight:800 }}>{i+1}</div>
+                      </div>
+                      {/* Takım */}
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <LogoMini logo={isMe?club?.logo:null} size={22}/>
+                        <div>
+                          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontWeight:700, fontSize:13, color:isMe?'#00c8ff':'rgba(255,255,255,0.8)' }}>{player.team_name}</div>
+                          {isMe && <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:8, letterSpacing:2, color:'rgba(0,200,255,0.5)' }}>SEN</div>}
+                        </div>
+                      </div>
+                      {/* İstatistikler */}
+                      {[stat.played||0, stat.wins||0, stat.draws||0, stat.losses||0, stat.goals_for||0, stat.goals_against||0].map((v,j) => (
+                        <div key={j} style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, color:'rgba(255,255,255,0.5)', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center' }}>{v}</div>
+                      ))}
+                      {/* AV */}
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', color:av>0?'#10b981':av<0?'#ef4444':'rgba(255,255,255,0.4)' }}>
+                        {av>0?`+${av}`:av}
+                      </div>
+                      {/* Puan */}
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', color:isFirst?'#ffd700':isMe?'#00c8ff':'rgba(255,255,255,0.8)', fontWeight:800 }}>
+                        {stat.points||0}
+                      </div>
+                    </div>
+                  )
+                })
+              }
+
+              {/* Açıklama */}
+              <div style={{ padding:'.75rem 1rem', display:'flex', gap:'1rem', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                {[['G','Galibiyet'],['B','Beraberlik'],['M','Mağlubiyet'],['AG','Attığı Gol'],['YG','Yediği Gol'],['AV','Averaj'],['P','Puan']].map(([k,v])=>(
+                  <div key={k} style={{ display:'flex', gap:4, alignItems:'center' }}>
+                    <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'rgba(0,200,255,0.6)', letterSpacing:1 }}>{k}</span>
+                    <span style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:9, color:'rgba(255,255,255,0.2)' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
