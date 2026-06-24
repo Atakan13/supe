@@ -32,8 +32,7 @@ function App() {
         <Route path="/create/info" element={<CreateInfoPage />} />
         <Route path="/create/logo" element={<CreateLogoPage />} />
         <Route path="/create/kit" element={<CreateKitPage />} />
-        <Route path="/join/:code" element={<JoinRedirect />} />
-        <Route path="/join-direct/:code" element={<JoinClubPage />} />
+        <Route path="/join/:code" element={<JoinClubPage />} />
         <Route path="/lobby/:code" element={<LobbyPage />} />
         <Route path="/draft/:code" element={<DraftPage />} />
         <Route path="/game/:code" element={<GamePage />} />
