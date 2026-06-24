@@ -163,6 +163,12 @@ function FutCard({ card, onClick, disabled, selected }) {
           color: s.pos, marginTop:-2,
         }}>{card.position}</div>
       </div>
+      {/* Fiyat - sağ üst */}
+      <div style={{ position:"absolute", top:7, right:6, zIndex:6 }}>
+        <div style={{ fontFamily:"Bebas Neue,sans-serif", fontSize:10, color:"#10b981", background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.3)", borderRadius:4, padding:"2px 5px" }}>
+          {card.market_value>=1000000?(card.market_value/1000000).toFixed(1)+"M":(card.market_value/1000).toFixed(0)+"K"}
+        </div>
+      </div>
 
       {/* Oyuncu resmi veya silüet */}
       <div style={{
