@@ -37,11 +37,14 @@ const LOGO_BG_COLORS     = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#
 const LOGO_ACCENT_COLORS = ['#fbbf24','#ffffff','#f87171','#86efac','#93c5fd','#c4b5fd','#fdba74','#6ee7b7','#fde68a','#bfdbfe']
 const KIT_COLORS         = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#0891b2','#db2777','#1f2937','#ffffff','#f59e0b','#10b981','#ef4444']
 const KIT_PATTERNS       = [
-  { id:'solid',    name:'Düz'      },
-  { id:'stripes',  name:'Çizgili'  },
-  { id:'halves',   name:'İki Renk' },
-  { id:'hoops',    name:'Halka'    },
-  { id:'quarters', name:'Çeyrek'   },
+  { id:'solid',      name:'Düz'        },
+  { id:'stripes',    name:'Çubuklu'    },
+  { id:'hoops',      name:'Yatay Şerit'},
+  { id:'halves',     name:'İki Renk'   },
+  { id:'quarters',   name:'Çeyrek'     },
+  { id:'diagonal',   name:'Çapraz'     },
+  { id:'sash',       name:'Omuz Bandı' },
+  { id:'panel',      name:'Panel'      },
 ]
 
 export function LogoPreview({ shape, icon, bgColor, accentColor, size=80 }) {
@@ -87,15 +90,27 @@ export function KitPreview({ primary, secondary, pattern, size=100 }) {
         
         {/* Desen overlay */}
         {pattern==='stripes' && Array.from({length:6},(_,i)=>(
-          <div key={i} style={{ position:'absolute', top:0, bottom:0, left:`${i*16.66}%`, width:'8.33%', background:secondary, opacity:.7 }}/>
+          <div key={i} style={{ position:'absolute', top:0, bottom:0, left:`${i*16.66}%`, width:'8.33%', background:secondary, opacity:.75 }}/>
         ))}
-        {pattern==='halves' && <div style={{ position:'absolute', top:0, right:0, bottom:0, width:'50%', background:secondary }}/>}
-        {pattern==='hoops' && Array.from({length:4},(_,i)=>(
-          <div key={i} style={{ position:'absolute', left:0, right:0, top:`${i*25}%`, height:'12.5%', background:secondary, opacity:.7 }}/>
+        {pattern==='hoops' && Array.from({length:5},(_,i)=>(
+          <div key={i} style={{ position:'absolute', left:0, right:0, top:`${i*20}%`, height:'10%', background:secondary, opacity:.75 }}/>
         ))}
+        {pattern==='halves' && (
+          <div style={{ position:'absolute', top:0, right:0, bottom:0, width:'50%', background:secondary }}/>
+        )}
         {pattern==='quarters' && <>
           <div style={{ position:'absolute', top:0, left:0, width:'50%', height:'50%', background:secondary }}/>
           <div style={{ position:'absolute', bottom:0, right:0, width:'50%', height:'50%', background:secondary }}/>
+        </>}
+        {pattern==='diagonal' && (
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(135deg, transparent 45%, ${secondary} 45%, ${secondary} 55%, transparent 55%)` }}/>
+        )}
+        {pattern==='sash' && (
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(160deg, transparent 30%, ${secondary} 30%, ${secondary} 50%, transparent 50%)` }}/>
+        )}
+        {pattern==='panel' && <>
+          <div style={{ position:'absolute', top:0, left:0, right:0, height:'35%', background:secondary }}/>
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'15%', background:secondary }}/>
         </>}
 
         {/* Highlight — 3D his için */}
@@ -613,7 +628,7 @@ export default function MenuPage() {
             
             {/* Kit 3D görünüm */}
             <div style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
-              <KitPreview primary={club?.kit?.primary||'#dc2626'} secondary={club?.kit?.secondary||'#fbbf24'} pattern={club?.kit?.pattern||'solid'} size={90}/>
+              <KitPreview primary={club?.kit?.primary||'#dc2626'} secondary={club?.kit?.secondary||'#fbbf24'} pattern={club?.kit?.pattern||'solid'} size={115}/>
               {/* Stand */}
               <div style={{ width:50, height:3, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)', borderRadius:2, marginTop:4 }}/>
               <div style={{ width:20, height:6, background:'rgba(255,255,255,0.08)', borderRadius:'50%', marginTop:2 }}/>
