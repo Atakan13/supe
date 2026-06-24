@@ -1,10 +1,10 @@
 // Radyo stream URL'leri
 export const STATIONS = [
-  { id:'nrj',      name:'NRJ Türkiye',    genre:'Pop/Dance',    url:'https://nrj.com.tr/radyo/nrj-turkiye' },
-  { id:'power',    name:'Power FM',        genre:'Türkçe Pop',   url:'https://listen.powerapp.com.tr/powerfm/abr/playlist.m3u8' },
-  { id:'kral',     name:'Kral FM',         genre:'Türkçe',       url:'https://listen.powerapp.com.tr/kralfm/abr/playlist.m3u8' },
-  { id:'fenomen',  name:'Radyo Fenomen',   genre:'Elektronik',   url:'https://radyofenomen.com.tr/listen.pls' },
-  { id:'virgin',   name:'Virgin Radio TR', genre:'Rock/Pop',     url:'https://listen.powerapp.com.tr/virginradio/abr/playlist.m3u8' },
+  { id:'paradise', name:'Radio Paradise',  genre:'Alternatif',  url:'https://stream.radioparadise.com/mp3-128' },
+  { id:'paradise2',name:'RP Mellow',       genre:'Chill',       url:'https://stream.radioparadise.com/mellow-128' },
+  { id:'paradise3',name:'RP Rock',         genre:'Rock',        url:'https://stream.radioparadise.com/rock-128' },
+  { id:'lofi',     name:'Lofi Hip Hop',    genre:'Lofi',        url:'https://streams.ilovemusic.de/iloveradio17.mp3' },
+  { id:'chillhop', name:'Chillhop',        genre:'Chill',       url:'https://streams.ilovemusic.de/iloveradio21.mp3' },
 ]
 
 let radioAudio = null
