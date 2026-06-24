@@ -549,15 +549,36 @@ export default function GamePage() {
                           </button>
                           <div
                             onClick={() => setSelectedPlayerForRole(selectedPlayerForRole?.name===player.name ? null : { ...player, slotPos:pos })}
-                            style={{ background:getPosColor(pos), border:`1.5px solid ${getPosTextColor(pos)}`, borderRadius:6, padding:'2px 5px', minWidth:52, textAlign:'center', boxShadow:'0 2px 8px rgba(0,0,0,.5)', cursor:'pointer' }}>
-                            <div style={{ fontSize:'.52rem', color:getPosTextColor(pos), fontWeight:700 }}>{pos}</div>
-                            <div style={{ fontSize:'.78rem', fontWeight:900, color:'#fbbf24' }}>{player.overall}</div>
-                            <div style={{ fontSize:'.52rem', fontWeight:700, color:'#fff', whiteSpace:'nowrap', maxWidth:54, overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
-                            {playerRoles[player.name] && (
-                              <div style={{ fontSize:'.44rem', color:getPosTextColor(pos), whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:54 }}>
-                                {(PLAYER_ROLES[pos]||PLAYER_ROLES[player.position]||[]).find(r=>r.id===playerRoles[player.name])?.name?.split(' ')[0]}
+                            style={{ position:'relative', width:56, borderRadius:8, overflow:'hidden', boxShadow:'0 4px 15px rgba(0,0,0,0.6)', cursor:'pointer', border:`2px solid ${getPosTextColor(pos)}44` }}>
+                            {/* Arka plan rengi */}
+                            <div style={{ position:'absolute', inset:0, background:getPosColor(pos), opacity:0.9 }}/>
+                            {/* Oyuncu resmi */}
+                            {player.image ? (
+                              <img src={player.image} alt={player.name}
+                                style={{ width:'100%', height:60, objectFit:'cover', objectPosition:'top', display:'block', position:'relative', zIndex:1 }}
+                                onError={e => e.target.style.display='none'}
+                              />
+                            ) : (
+                              <div style={{ height:44, display:'flex', alignItems:'center', justifyContent:'center', position:'relative', zIndex:1 }}>
+                                <svg viewBox="0 0 60 80" width={40} height={52} style={{ opacity:0.6 }}>
+                                  <ellipse cx="30" cy="16" rx="11" ry="12" fill="rgba(255,255,255,0.3)"/>
+                                  <path d="M10 45 C10 28 20 22 30 22 C40 22 50 28 50 45 L48 68 L38 68 L36 50 L30 54 L24 50 L22 68 L12 68 Z" fill="rgba(255,255,255,0.3)"/>
+                                </svg>
                               </div>
                             )}
+                            {/* Alt bilgi */}
+                            <div style={{ position:'relative', zIndex:2, padding:'2px 3px', background:'rgba(0,0,0,0.7)', textAlign:'center' }}>
+                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:getPosTextColor(pos), letterSpacing:0.5 }}>{pos}</span>
+                                <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:'#ffd700' }}>{player.overall}</span>
+                              </div>
+                              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:0.5 }}>{(player.name||'').split(' ').pop()}</div>
+                              {playerRoles[player.name] && (
+                                <div style={{ fontSize:7, color:getPosTextColor(pos), whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', opacity:0.8 }}>
+                                  {(PLAYER_ROLES[pos]||PLAYER_ROLES[player.position]||[]).find(r=>r.id===playerRoles[player.name])?.name?.split(' ')[0]}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ) : (
