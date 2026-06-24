@@ -482,8 +482,6 @@ function ClubEditor({ initialClub, onSave, onCancel, showLobbyTab = true }) {
 export default function MenuPage() {
   const navigate = useNavigate()
   const userId = getUserId()
-  const [screen, setScreen] = useState(() => getClub() ? 'home' : 'create')
-  const [editing, setEditing] = useState(false)
   const [lobbyCode, setLobbyCode] = useState('')
   const [joinError, setJoinError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -721,7 +719,7 @@ export default function MenuPage() {
             </div>
 
             <div style={{ textAlign:'center' }}>
-              <button onClick={() => setEditing(true)}
+              <button onClick={() => navigate('/create/info')}
                 style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, padding:'5px 12px', color:'rgba(255,255,255,0.55)', fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:600, cursor:'pointer', letterSpacing:0.5 }}>
                 ✏️ Düzenle
               </button>
