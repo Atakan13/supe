@@ -15,14 +15,6 @@ const KIT_PATTERNS = [
   { id:'panel',    name:'Panel',       emoji:'▤' },
 ]
 
-const BUDGETS = [
-  { label:'€100M',    value:100000000 },
-  { label:'€300M',    value:300000000 },
-  { label:'€600M',    value:600000000 },
-  { label:'Sınırsız', value:999999999999 },
-]
-const FORMATIONS = ['4-4-2','4-3-3','3-5-2','4-2-3-1','5-3-2','3-4-3']
-
 export default function CreateKitPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,14 +24,10 @@ export default function CreateKitPage() {
   const [kitPrimary,   setKitPrimary]   = useState(existing?.kit?.primary   || '#dc2626')
   const [kitSecondary, setKitSecondary] = useState(existing?.kit?.secondary || '#ffffff')
   const [kitPattern,   setKitPattern]   = useState(existing?.kit?.pattern   || 'solid')
-  const [budget,       setBudget]       = useState(existing?.budget          || 999999999999)
-  const [formation,    setFormation]    = useState(existing?.formation       || '4-3-3')
-
   const handleSave = () => {
     const updated = {
       ...existing,
       kit: { primary:kitPrimary, secondary:kitSecondary, pattern:kitPattern },
-      budget, formation,
     }
     saveClub(updated)
     if (redirectTo) navigate(redirectTo)
@@ -119,37 +107,26 @@ export default function CreateKitPage() {
             </div>
           </div>
 
-          {/* SAĞ: Lobi ayarları + Kaydet */}
-          <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
-            <div style={{ background:'rgba(15,12,30,0.95)', border:'1px solid rgba(124,58,237,0.25)', borderRadius:16, padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, color:'rgba(255,255,255,0.6)' }}>LOBİ AYARLARI</div>
-
-              <div>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:8 }}>DİZİLİŞ</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
-                  {FORMATIONS.map(f => (
-                    <button key={f} onClick={() => setFormation(f)}
-                      style={{ padding:'8px 4px', borderRadius:7, border:`1.5px solid ${formation===f?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:formation===f?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.03)', color:formation===f?'#a78bfa':'rgba(255,255,255,0.4)', fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:1, cursor:'pointer', transition:'all .15s' }}>
-                      {f}
-                    </button>
-                  ))}
+          {/* SAĞ: Butonlar */}
+          <div style={{ display:'flex', flexDirection:'column', gap:'1rem', justifyContent:'flex-end' }}>
+            <div style={{ background:'rgba(15,12,30,0.95)', border:'1px solid rgba(124,58,237,0.25)', borderRadius:16, padding:'1.5rem' }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, color:'rgba(255,255,255,0.6)', marginBottom:12 }}>FORMA ÖNİZLEME</div>
+              <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'2rem', padding:'1rem 0' }}>
+                <div style={{ textAlign:'center' }}>
+                  <KitPreview primary={kitPrimary} secondary={kitSecondary} pattern={kitPattern} size={100}/>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:2, color:'rgba(255,255,255,0.3)', marginTop:6 }}>İÇ SAHA</div>
+                </div>
+                <div style={{ textAlign:'center' }}>
+                  <KitPreview primary={kitSecondary} secondary={kitPrimary} pattern={kitPattern} size={100}/>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:2, color:'rgba(255,255,255,0.3)', marginTop:6 }}>DEPLASMAN</div>
                 </div>
               </div>
-
-              <div>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:8 }}>TRANSFER BÜTÇESİ</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                  {BUDGETS.map(b => (
-                    <div key={b.value} onClick={() => setBudget(b.value)}
-                      style={{ padding:'10px', borderRadius:8, border:`1.5px solid ${budget===b.value?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:budget===b.value?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.03)', cursor:'pointer', textAlign:'center', transition:'all .15s' }}>
-                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, color:budget===b.value?'#a78bfa':'rgba(255,255,255,0.6)', letterSpacing:1 }}>{b.label}</div>
-                    </div>
-                  ))}
-                </div>
+              <div style={{ display:'flex', gap:8, marginTop:12 }}>
+                <div style={{ flex:1, height:6, borderRadius:3, background:kitPrimary }}/>
+                <div style={{ flex:1, height:6, borderRadius:3, background:kitSecondary }}/>
               </div>
             </div>
 
-            {/* Butonlar */}
             <button onClick={handleSave}
               style={{ padding:'1.1rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#6d28d9,#7c3aed,#8b5cf6)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:3, cursor:'pointer', boxShadow:'0 8px 25px rgba(124,58,237,0.4)', position:'relative', overflow:'hidden' }}>
               <div style={{ position:'absolute', top:0, left:'-100%', width:'60%', height:'100%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)', animation:'shimmer 2s ease-in-out infinite' }}/>
