@@ -197,14 +197,8 @@ export default function LobbyPage() {
           <button className="btn btn-secondary" style={{ width:'100%' }} onClick={copyLink}>🔗 Linki Kopyala</button>
         </div>
 
-        <div className="card" style={{ marginBottom:'1rem' }}>
-          <p style={{ color:'var(--text-muted)', fontSize:'.75rem', fontWeight:600, letterSpacing:'.1em', marginBottom:'1rem' }}>OYUN AYARLARI</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.75rem' }}>
             {[
-              ['Diziliş', lobby?.formation],
-              ['Zorluk', lobby?.difficulty === 'easy' ? 'Kolay' : lobby?.difficulty === 'medium' ? 'Orta' : 'Zor'],
-              ['Bütçe', `€${(lobby?.budget/1000000).toFixed(0)}M`],
-              ['Yıldız Limit', `${lobby?.star_limit} ⭐`],
             ].map(([label, value]) => (
               <div key={label} style={{ background:'var(--bg-secondary)', borderRadius:10, padding:'.75rem' }}>
                 <div style={{ color:'var(--text-muted)', fontSize:'.7rem', fontWeight:600, letterSpacing:'.08em', marginBottom:'.25rem' }}>{label}</div>
