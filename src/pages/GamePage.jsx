@@ -125,7 +125,7 @@ export default function GamePage() {
 
   const [lobby, setLobby] = useState(null)
   const [lobbyPlayers, setLobbyPlayers] = useState([])
-  const [standings, setStandings] = useState([])
+  const [standingsData, setStandingsData] = useState([])
   const [activeTab, setActiveTab] = useState('home')
   const [matchReady, setMatchReady] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -185,8 +185,8 @@ export default function GamePage() {
       setUnassigned(autoUnassigned)
     }
 
-    const { data: stats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
-    setStandings(stats || [])
+    const { data: standingsStats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
+    setStandingsData(stats || [])
 
     const teams = (pl || []).map(p => p.team_name)
     setNews(Array.from({ length: 6 }, (_, i) => ({
@@ -424,7 +424,7 @@ export default function GamePage() {
 
       {/* NAV */}
       <div style={{ background:'#0f0f2a', borderBottom:'1px solid #1e1e4a', display:'flex', padding:'0 1.5rem' }}>
-        {[['home','🏠 Ana'],['squad','👥 Kadro & Taktik'],['standings','🏆 Puan'],['news','📰 Haberler']].map(([tab, label]) => (
+        {[['home','🏠 Ana'],['squad','👥 Kadro & Taktik'],['standingsData','🏆 Puan'],['news','📰 Haberler']].map(([tab, label]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             style={{ padding:'.75rem 1rem', border:'none', background:'transparent', color:activeTab===tab?'#a78bfa':'#606080', fontWeight:700, fontSize:'.78rem', cursor:'pointer', borderBottom:activeTab===tab?'2px solid #7c3aed':'2px solid transparent' }}>
             {label}
@@ -709,7 +709,7 @@ export default function GamePage() {
         )}
 
         {/* PUAN TABLOSU */}
-        {activeTab === 'standings' && (
+        {activeTab === 'standingsData' && (
           <div style={{ padding:'1.5rem', maxWidth:700, margin:'0 auto' }}>
             <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(0,200,255,0.12)', borderRadius:14, overflow:'hidden', boxShadow:'0 8px 30px rgba(0,0,0,0.4)' }}>
               
@@ -729,7 +729,7 @@ export default function GamePage() {
               {/* Satırlar - puana göre sırala */}
               {[...lobbyPlayers]
                 .map(player => {
-                  const stat = standings.find(s=>s.user_id===player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
+                  const stat = standingsData.find(s=>s.user_id===player.user_id) || { played:0,wins:0,draws:0,losses:0,goals_for:0,goals_against:0,points:0 }
                   const av = (stat.goals_for||0)-(stat.goals_against||0)
                   return { player, stat, av }
                 })
