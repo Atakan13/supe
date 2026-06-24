@@ -154,14 +154,31 @@ function FutCard({ card, onClick, disabled, selected }) {
         }}>{card.position}</div>
       </div>
 
-      {/* Silüet */}
+      {/* Oyuncu resmi veya silüet */}
       <div style={{
         position:'absolute', inset:0,
         display:'flex', alignItems:'flex-end', justifyContent:'center',
         zIndex: 2,
       }}>
+        {card.image ? (
+          <img
+            src={card.image}
+            alt={card.name}
+            style={{
+              width:'85%', height:'80%', objectFit:'cover', objectPosition:'top',
+              marginBottom:-2,
+              filter: type==='special'
+                ? 'drop-shadow(0 0 8px rgba(0,200,255,0.35))'
+                : type==='gold'
+                ? 'drop-shadow(0 0 6px rgba(212,175,55,0.3))'
+                : 'drop-shadow(0 0 4px rgba(160,168,192,0.2))',
+            }}
+            onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block' }}
+          />
+        ) : null}
         <svg viewBox="0 0 100 160" style={{
           width:'72%', height:'78%', marginBottom:-2,
+          display: card.image ? 'none' : 'block',
           filter: type==='special'
             ? 'drop-shadow(0 0 8px rgba(0,200,255,0.35))'
             : type==='gold'
