@@ -22,15 +22,17 @@ export default function IntroPage() {
   }, [])
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: '#000',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999,
-    }}>
+    <div
+      onClick={() => navigate('/menu', { replace: true })}
+      style={{
+        position: 'fixed', inset: 0, background: '#000',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 9999, cursor: 'pointer',
+      }}>
       <video
         ref={videoRef}
         src="/intro.mp4"
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
         playsInline
         muted
         autoPlay
