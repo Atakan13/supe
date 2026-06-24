@@ -1,5 +1,5 @@
 // Radyo stream URL'leri
-export const STATIONS = [
+export const RADIO_STATIONS = [
   { id:'paradise', name:'Radio Paradise',  genre:'Alternatif',  url:'https://stream.radioparadise.com/mp3-128' },
   { id:'paradise2',name:'RP Mellow',       genre:'Chill',       url:'https://stream.radioparadise.com/mellow-128' },
   { id:'paradise3',name:'RP Rock',         genre:'Rock',        url:'https://stream.radioparadise.com/rock-128' },

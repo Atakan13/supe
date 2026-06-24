@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { STATIONS, playRadio, stopRadio, setRadioVolume } from '../lib/radio'
+import { RADIO_STATIONS as STATIONS, playRadio, stopRadio, setRadioVolume } from '../lib/radio'
 
 export default function RadioWidget() {
   const [isOpen, setIsOpen] = useState(false)
