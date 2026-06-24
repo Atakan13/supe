@@ -9,6 +9,7 @@ import JoinClubPage from './pages/JoinClubPage'
 import DraftPage from './pages/DraftPage'
 import GamePage from './pages/GamePage'
 import MatchPage from './pages/MatchPage'
+import PreMatchPage from './pages/PreMatchPage'
 
 function JoinRedirect() {
   const params = window.location.pathname.split('/join/')[1]
@@ -37,6 +38,7 @@ function App() {
         <Route path="/draft/:code" element={<DraftPage />} />
         <Route path="/game/:code" element={<GamePage />} />
         <Route path="/match/:matchId" element={<MatchPage />} />
+        <Route path="/prematch/:matchId" element={<PreMatchPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
