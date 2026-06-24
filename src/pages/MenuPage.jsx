@@ -66,45 +66,56 @@ export function LogoPreview({ shape, icon, bgColor, accentColor, size=80 }) {
 }
 
 export function KitPreview({ primary, secondary, pattern, size=100 }) {
-  // Desen overlay için SVG mask
-  const w = size*.7, h = size
-  const getPatternOverlay = () => {
-    switch(pattern) {
-      case 'stripes':  return Array.from({length:5},(_,i)=><rect key={i} x={w/5*i} y={0} width={w/10} height={h} fill={secondary} opacity={.55}/>)
-      case 'halves':   return <rect x={w/2} y={0} width={w/2} height={h} fill={secondary} opacity={.65}/>
-      case 'hoops':    return Array.from({length:4},(_,i)=><rect key={i} x={0} y={h/4*i} width={w} height={h/8} fill={secondary} opacity={.55}/>)
-      case 'quarters': return <><rect x={0} y={0} width={w/2} height={h/2} fill={secondary} opacity={.65}/><rect x={w/2} y={h/2} width={w/2} height={h/2} fill={secondary} opacity={.65}/></>
-      default: return null
-    }
-  }
+  const uid = primary.replace('#','') + pattern
 
   return (
-    <div style={{ position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      {/* Ana renk katmanı — mix-blend-mode ile forma üzerine */}
+    <div style={{ position:'relative', width:size, height:size }}>
+      {/* Renkli arka plan — forma maskesiyle kesilecek */}
       <div style={{
         position:'absolute', inset:0,
-        background:primary,
-        mixBlendMode:'multiply',
-        borderRadius:4,
-        pointerEvents:'none',
-        zIndex:1,
-      }}/>
-      {/* Desen katmanı */}
-      {pattern !== 'solid' && (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ position:'absolute', inset:0, zIndex:2, mixBlendMode:'multiply' }}>
-          <g transform={`translate(${(size-w)/2},0)`}>
-            <clipPath id={`kp-${primary}`}>
-              <path d={`M${w*.2},0 L0,${h*.2} L0,${h*.75} Q0,${h} ${w*.1},${h} L${w*.9},${h} Q${w},${h} ${w},${h*.75} L${w},${h*.2} L${w*.8},0 Z`}/>
-            </clipPath>
-            <g clipPath={`url(#kp-${primary})`}>{getPatternOverlay()}</g>
-          </g>
-        </svg>
-      )}
-      {/* Forma PNG */}
+        WebkitMaskImage:'url(/assets/kit_base.png)',
+        WebkitMaskSize:'contain',
+        WebkitMaskRepeat:'no-repeat',
+        WebkitMaskPosition:'center',
+        maskImage:'url(/assets/kit_base.png)',
+        maskSize:'contain',
+        maskRepeat:'no-repeat',
+        maskPosition:'center',
+      }}>
+        {/* Ana renk */}
+        <div style={{ position:'absolute', inset:0, background:primary }}/>
+        
+        {/* Desen overlay */}
+        {pattern==='stripes' && Array.from({length:6},(_,i)=>(
+          <div key={i} style={{ position:'absolute', top:0, bottom:0, left:`${i*16.66}%`, width:'8.33%', background:secondary, opacity:.7 }}/>
+        ))}
+        {pattern==='halves' && <div style={{ position:'absolute', top:0, right:0, bottom:0, width:'50%', background:secondary }}/>}
+        {pattern==='hoops' && Array.from({length:4},(_,i)=>(
+          <div key={i} style={{ position:'absolute', left:0, right:0, top:`${i*25}%`, height:'12.5%', background:secondary, opacity:.7 }}/>
+        ))}
+        {pattern==='quarters' && <>
+          <div style={{ position:'absolute', top:0, left:0, width:'50%', height:'50%', background:secondary }}/>
+          <div style={{ position:'absolute', bottom:0, right:0, width:'50%', height:'50%', background:secondary }}/>
+        </>}
+
+        {/* Highlight — 3D his için */}
+        <div style={{
+          position:'absolute', inset:0,
+          background:'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 40%, rgba(0,0,0,0.15) 100%)',
+        }}/>
+      </div>
+
+      {/* Forma PNG üstte — gölge ve detaylar için */}
       <img
         src="/assets/kit_base.png"
         alt="forma"
-        style={{ width:'100%', height:'100%', objectFit:'contain', position:'relative', zIndex:3, mixBlendMode:'multiply' }}
+        style={{
+          position:'absolute', inset:0,
+          width:'100%', height:'100%',
+          objectFit:'contain',
+          filter:'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
+          mixBlendMode:'multiply',
+        }}
       />
     </div>
   )
