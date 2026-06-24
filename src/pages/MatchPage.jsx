@@ -193,6 +193,7 @@ export default function MatchPage() {
     away:{shots:0,shotsOnTarget:0,possession:50,passes:0,tackles:0},
   })
 
+  const [matchReport, setMatchReport] = useState(null)
   const commentaryRef = useRef(null)
   const channelRef = useRef(null)
   const matchRef = useRef(null)
@@ -256,6 +257,7 @@ export default function MatchPage() {
           setIsFinished(true); setPhase('watching')
           addCommentary('🏁 MAÇ SONA ERDİ!','goal')
           updateSeasonStats(u,m.lobby_id,pl||[])
+          generateMatchReport(u, matchId)
         }
       })
       .subscribe()
@@ -351,6 +353,55 @@ export default function MatchPage() {
     const statVal = calcPlayerStat(selectedPlayer,statKey,myTactics,myRoles)
     const roll=rollDice()
     addCommentary(`✅ ${selectedPlayer.name?.split(' ').pop()} — ${selectedAction.label} [${statVal}+🎲${roll}=${statVal+roll}]`,'normal')
+  }
+
+  const generateMatchReport = async (matchData, mId) => {
+    try {
+      // Gol eventlerini çek
+      const { data: events } = await supabase
+        .from('match_events')
+        .select('*')
+        .eq('match_id', mId)
+        .eq('event_type', 'goal')
+        .order('minute')
+
+      // Maç aksiyonlarından oyuncu istatistikleri
+      const { data: actions } = await supabase
+        .from('match_actions')
+        .select('*')
+        .eq('match_id', mId)
+
+      // Oyuncu başına aksiyon sayısı
+      const playerActions = {}
+      actions?.forEach(a => {
+        const pid = a.selected_player_id
+        if (!pid) return
+        if (!playerActions[pid]) playerActions[pid] = { actions:0, role: a.role }
+        playerActions[pid].actions++
+      })
+
+      // En aktif oyuncu
+      const mostActive = Object.entries(playerActions)
+        .sort((a,b) => b[1].actions - a[1].actions)[0]
+
+      // Goller
+      const goals = events?.map(e => ({
+        minute: e.minute,
+        scorer: e.narrative_text?.match(/GOOOOL! (\w+)/)?.[1] || '?',
+        isHome: e.attacking_user === matchData.home_user_id,
+      })) || []
+
+      setMatchReport({
+        goals,
+        mostActive: mostActive ? { name: mostActive[0], actions: mostActive[1].actions } : null,
+        homeScore: matchData.home_score || 0,
+        awayScore: matchData.away_score || 0,
+        totalShots: actions?.filter(a => a.action_choice === 'shot').length || 0,
+        totalTackles: actions?.filter(a => ['tackle','block','position'].includes(a.action_choice)).length || 0,
+      })
+    } catch(e) {
+      console.error('Rapor hatası:', e)
+    }
   }
 
   const makeSub = async () => {
