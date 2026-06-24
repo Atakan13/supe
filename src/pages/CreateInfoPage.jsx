@@ -31,9 +31,10 @@ export default function CreateInfoPage() {
   }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#080c18', backgroundImage:'linear-gradient(rgba(0,200,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.02) 1px,transparent 1px)', backgroundSize:'40px 40px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative' }}>
+    <div style={{ minHeight:'100vh', backgroundImage:'url(/assets/stadium_info.jpg)', backgroundSize:'cover', backgroundPosition:'center', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');`}</style>
-      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 0%,rgba(124,58,237,0.12) 0%,transparent 70%)', pointerEvents:'none' }}/>
+      <div style={{ position:'fixed', inset:0, background:'rgba(4,4,16,0.78)', pointerEvents:'none' }}/>
+      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 0%,rgba(124,58,237,0.15) 0%,transparent 70%)', pointerEvents:'none' }}/>
 
       <div style={{ width:'100%', maxWidth:560, position:'relative', zIndex:1 }}>
 
