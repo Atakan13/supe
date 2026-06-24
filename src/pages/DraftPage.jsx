@@ -139,8 +139,18 @@ function FutCard({ card, onClick, disabled, selected }) {
         }}/>
       ))}
 
+      {/* İsim - En üst */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:3, textAlign:'center', padding:'5px 4px 0' }}>
+        <div style={{
+          fontFamily: "'Bebas Neue', 'Rajdhani', sans-serif",
+          fontSize: 11, letterSpacing:1.5,
+          color: s.name,
+          whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
+        }}>{card.name.toUpperCase()}</div>
+      </div>
+
       {/* Overall + Pozisyon */}
-      <div style={{ position:'absolute', top:7, left:8, zIndex:3 }}>
+      <div style={{ position:'absolute', top:18, left:8, zIndex:3 }}>
         <div style={{
           fontFamily: "'Bebas Neue', 'Rajdhani', sans-serif",
           fontSize: 26, fontWeight:900, lineHeight:1,
@@ -201,13 +211,7 @@ function FutCard({ card, onClick, disabled, selected }) {
         padding:'18px 6px 7px',
         zIndex: 3,
       }}>
-        <div style={{
-          fontFamily: "'Bebas Neue', 'Rajdhani', sans-serif",
-          fontSize: 12, letterSpacing:1.5, textAlign:'center',
-          color: s.name,
-          whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
-          marginBottom: 5,
-        }}>{card.name.toUpperCase()}</div>
+
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'2px 1px' }}>
           {[['HZ',card.pace],['ŞUT',card.shooting],['PAS',card.passing],['ÇAL',card.dribbling],['DEF',card.defending],['FİZ',card.physical]].map(([l,v])=>(
             <div key={l} style={{ textAlign:'center' }}>
