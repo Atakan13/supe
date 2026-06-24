@@ -9,6 +9,7 @@ import JoinClubPage from './pages/JoinClubPage'
 import DraftPage from './pages/DraftPage'
 import GamePage from './pages/GamePage'
 import MatchPage from './pages/MatchPage'
+import RadioWidget from './components/RadioWidget'
 import PreMatchPage from './pages/PreMatchPage'
 
 function JoinRedirect() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/prematch/:matchId" element={<PreMatchPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <RadioWidget />
     </BrowserRouter>
   )
 }
