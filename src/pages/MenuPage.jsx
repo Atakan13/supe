@@ -506,10 +506,8 @@ export default function MenuPage() {
       const { data: lobby, error: le } = await supabase.from('lobbies').insert({
         code: lobbyCode,
         host_id: userId,
-        formation: c.formation || '4-4-2',
-        budget: c.budget || 300000000,
-        
-        
+        formation: c.formation || '4-3-3',
+        budget: 999999999999,
       }).select().single()
       if (le) throw le
       await supabase.from('lobby_players').insert({
@@ -649,18 +647,11 @@ export default function MenuPage() {
 
             {/* Taktik + Bütçe */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.65rem' }}>
-              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:'.65rem .85rem' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:4 }}>TAKTİKSEL BAKIŞ</div>
+              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:'.65rem .85rem', gridColumn:'1/-1' }}>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:4 }}>MENAJER STİLİ</div>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:18 }}>📋</span>
-                  <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:15, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>DİZİLİŞ: {club?.formation||'4-4-2'}</span>
-                </div>
-              </div>
-              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:'.65rem .85rem' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:4 }}>TRANSFER BÜTÇESİ</div>
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:18 }}>💰</span>
-                  <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:15, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>{club?.budget >= 999999999999 ? '∞ (Sınırsız)' : `€${(club?.budget/1e6)||500}M`}</span>
+                  <span style={{ fontSize:18 }}>{managerStyleObj?.emoji||'⚡'}</span>
+                  <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:15, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>{managerStyleObj?.name||'—'} · {managerStyleObj?.desc||''}</span>
                 </div>
               </div>
             </div>
