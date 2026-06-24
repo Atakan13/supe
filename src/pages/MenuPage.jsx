@@ -66,27 +66,47 @@ export function LogoPreview({ shape, icon, bgColor, accentColor, size=80 }) {
 }
 
 export function KitPreview({ primary, secondary, pattern, size=100 }) {
+  // Desen overlay için SVG mask
   const w = size*.7, h = size
-  const getPattern = () => {
+  const getPatternOverlay = () => {
     switch(pattern) {
-      case 'stripes':  return Array.from({length:5},(_,i)=><rect key={i} x={w/5*i} y={0} width={w/10} height={h} fill={secondary} opacity={.9}/>)
-      case 'halves':   return <rect x={w/2} y={0} width={w/2} height={h} fill={secondary}/>
-      case 'hoops':    return Array.from({length:4},(_,i)=><rect key={i} x={0} y={h/4*i} width={w} height={h/8} fill={secondary} opacity={.9}/>)
-      case 'quarters': return <><rect x={0} y={0} width={w/2} height={h/2} fill={secondary}/><rect x={w/2} y={h/2} width={w/2} height={h/2} fill={secondary}/></>
+      case 'stripes':  return Array.from({length:5},(_,i)=><rect key={i} x={w/5*i} y={0} width={w/10} height={h} fill={secondary} opacity={.55}/>)
+      case 'halves':   return <rect x={w/2} y={0} width={w/2} height={h} fill={secondary} opacity={.65}/>
+      case 'hoops':    return Array.from({length:4},(_,i)=><rect key={i} x={0} y={h/4*i} width={w} height={h/8} fill={secondary} opacity={.55}/>)
+      case 'quarters': return <><rect x={0} y={0} width={w/2} height={h/2} fill={secondary} opacity={.65}/><rect x={w/2} y={h/2} width={w/2} height={h/2} fill={secondary} opacity={.65}/></>
       default: return null
     }
   }
+
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <g transform={`translate(${(size-w)/2},0)`}>
-        <path d={`M${w*.2},0 L0,${h*.2} L0,${h*.75} Q0,${h} ${w*.1},${h} L${w*.9},${h} Q${w},${h} ${w},${h*.75} L${w},${h*.2} L${w*.8},0 Z`} fill={primary}/>
-        <clipPath id="kc2"><path d={`M${w*.2},0 L0,${h*.2} L0,${h*.75} Q0,${h} ${w*.1},${h} L${w*.9},${h} Q${w},${h} ${w},${h*.75} L${w},${h*.2} L${w*.8},0 Z`}/></clipPath>
-        <g clipPath="url(#kc2)">{getPattern()}</g>
-        <path d={`M${w*.35},0 Q${w*.35},${h*.12} ${w/2},${h*.15} Q${w*.65},${h*.12} ${w*.65},0`} fill="none" stroke={secondary} strokeWidth={w*.04}/>
-        <path d={`M${w*.2},0 L0,${h*.2} L${w*.15},${h*.35} L${w*.3},${h*.15}`} fill={secondary} opacity={.8}/>
-        <path d={`M${w*.8},0 L${w},${h*.2} L${w*.85},${h*.35} L${w*.7},${h*.15}`} fill={secondary} opacity={.8}/>
-      </g>
-    </svg>
+    <div style={{ position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      {/* Ana renk katmanı — mix-blend-mode ile forma üzerine */}
+      <div style={{
+        position:'absolute', inset:0,
+        background:primary,
+        mixBlendMode:'multiply',
+        borderRadius:4,
+        pointerEvents:'none',
+        zIndex:1,
+      }}/>
+      {/* Desen katmanı */}
+      {pattern !== 'solid' && (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ position:'absolute', inset:0, zIndex:2, mixBlendMode:'multiply' }}>
+          <g transform={`translate(${(size-w)/2},0)`}>
+            <clipPath id={`kp-${primary}`}>
+              <path d={`M${w*.2},0 L0,${h*.2} L0,${h*.75} Q0,${h} ${w*.1},${h} L${w*.9},${h} Q${w},${h} ${w},${h*.75} L${w},${h*.2} L${w*.8},0 Z`}/>
+            </clipPath>
+            <g clipPath={`url(#kp-${primary})`}>{getPatternOverlay()}</g>
+          </g>
+        </svg>
+      )}
+      {/* Forma PNG */}
+      <img
+        src="/assets/kit_base.png"
+        alt="forma"
+        style={{ width:'100%', height:'100%', objectFit:'contain', position:'relative', zIndex:3, mixBlendMode:'multiply' }}
+      />
+    </div>
   )
 }
 
