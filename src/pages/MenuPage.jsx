@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getClub, saveClub } from '../lib/club'
@@ -559,28 +559,11 @@ export default function MenuPage() {
   }
 
   // İLK KULÜP OLUŞTURMA
-  const EditorWrapper = ({ title, subtitle, children }) => (
-    <div style={{ minHeight:'100vh', background:'#080c18', backgroundImage:'linear-gradient(rgba(0,200,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.02) 1px,transparent 1px)', backgroundSize:'40px 40px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative' }}>
-      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 0%,rgba(124,58,237,0.12) 0%,transparent 70%)', pointerEvents:'none' }}/>
-      <div style={{ textAlign:'center', marginBottom:'2rem', position:'relative', zIndex:1 }}>
-        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:4, color:'rgba(124,58,237,0.8)', marginBottom:8 }}>{subtitle}</div>
-        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:32, letterSpacing:3, color:'#fff' }}>{title}</div>
-      </div>
-      <div style={{ position:'relative', zIndex:1, width:'100%' }}>{children}</div>
-    </div>
-  )
+  useEffect(() => {
+    if (!getClub()) navigate('/create/info')
+  }, [])
 
-  if (screen === 'create') return (
-    <EditorWrapper title="KULÜBÜNÜ OLUŞTUR ⚽" subtitle="HOŞ GELDİN">
-      <ClubEditor initialClub={null} onSave={handleSaveClub} showLobbyTab={true} />
-    </EditorWrapper>
-  )
-
-  if (editing) return (
-    <EditorWrapper title="KULÜBÜNÜ GÜNCELLE ✏️" subtitle="KULÜP DÜZENLE">
-      <ClubEditor initialClub={club} onSave={handleSaveClub} onCancel={() => setEditing(false)} showLobbyTab={true} />
-    </EditorWrapper>
-  )
+  if (!club) return null
 
   // ANA EKRAN — kulüp mevcut
   const managerStyleObj = MANAGER_STYLES.find(x => x.id === club?.managerStyle)

@@ -77,6 +77,12 @@ function KitPreview({ primary, secondary, pattern, size=100 }) {
 }
 
 export default function JoinClubPage() {
+  useEffect(() => {
+    const club = localStorage.getItem('draft_club')
+    if (!club) {
+      navigate('/create/info', { state: { redirectTo: window.location.pathname } })
+    }
+  }, [])
   const { code } = useParams()
   const navigate = useNavigate()
   const userId = getUserId()

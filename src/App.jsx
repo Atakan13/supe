@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import IntroPage from './pages/IntroPage'
 import MenuPage from './pages/MenuPage'
+import CreateInfoPage from './pages/CreateInfoPage'
+import CreateLogoPage from './pages/CreateLogoPage'
+import CreateKitPage from './pages/CreateKitPage'
 import LobbyPage from './pages/LobbyPage'
 import JoinClubPage from './pages/JoinClubPage'
 import DraftPage from './pages/DraftPage'
@@ -21,6 +24,9 @@ function App() {
       <Routes>
         <Route path="/" element={<IntroPage />} />
         <Route path="/menu" element={<MenuPage />} />
+        <Route path="/create/info" element={<CreateInfoPage />} />
+        <Route path="/create/logo" element={<CreateLogoPage />} />
+        <Route path="/create/kit" element={<CreateKitPage />} />
         <Route path="/join/:code" element={<JoinRedirect />} />
         <Route path="/lobby/:code" element={<LobbyPage />} />
         <Route path="/draft/:code" element={<DraftPage />} />
