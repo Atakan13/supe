@@ -436,74 +436,151 @@ export default function MenuPage() {
   )
 
   // ANA EKRAN — kulüp mevcut
+  const managerStyleObj = MANAGER_STYLES.find(x => x.id === club?.managerStyle)
+  const managerLevel = 'SEVİYE 1: Acemi'
+
   return (
-    <div style={{ minHeight:'100vh', background:'rgba(10,10,26,0.75)', backgroundImage:'url(/bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'fixed', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 50% at 20% 50%,rgba(124,58,237,.15) 0%,transparent 70%)' }}/>
-      <div style={{ width:'100%', maxWidth:580, position:'relative', zIndex:1 }}>
+    <div style={{ minHeight:'100vh', backgroundImage:'url(/bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative', overflow:'hidden' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
+        @keyframes shimmer{0%{left:-100%}100%{left:200%}}
+        @keyframes borderGlow{0%,100%{box-shadow:0 0 20px rgba(124,58,237,0.3)}50%{box-shadow:0 0 40px rgba(124,58,237,0.6)}}
+      `}</style>
 
-        {/* Kulüp Kartı */}
-        <div style={{ background:'#12122a', border:'1px solid #2a2a5a', borderRadius:20, padding:'1.75rem', marginBottom:'1.25rem' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'1.25rem', marginBottom:'1.25rem' }}>
-            <LogoPreview shape={club?.logo?.shape||'shield'} icon={club?.logo?.icon||'⚽'} bgColor={club?.logo?.bg||'#7c3aed'} accentColor={club?.logo?.accent||'#fbbf24'} size={72}/>
-            <div style={{ flex:1 }}>
-              <div style={{ fontWeight:900, fontSize:'1.4rem', marginBottom:'.2rem' }}>{club?.clubName}</div>
-              <div style={{ color:'#a0a0c0', fontSize:'.85rem' }}>Menajer: <strong style={{ color:'#fff' }}>{club?.managerName}</strong></div>
-              {club?.managerStyle && (() => {
-                const s = MANAGER_STYLES.find(x => x.id === club.managerStyle)
-                return s ? <div style={{ color:s.color, fontSize:'.78rem', fontWeight:700, marginTop:'.2rem' }}>{s.emoji} {s.name} · {s.desc}</div> : null
-              })()}
-            </div>
-            <KitPreview primary={club?.kit?.primary||'#7c3aed'} secondary={club?.kit?.secondary||'#fbbf24'} pattern={club?.kit?.pattern||'solid'} size={70}/>
-          </div>
-          <div style={{ display:'flex', gap:'.75rem' }}>
-            <div style={{ flex:1, background:'#0f0f2a', borderRadius:10, padding:'.6rem .75rem' }}>
-              <div style={{ fontSize:'.65rem', color:'#606080', fontWeight:600, letterSpacing:'.06em', marginBottom:'.2rem' }}>DİZİLİŞ</div>
-              <div style={{ fontWeight:800 }}>{club?.formation||'4-4-2'}</div>
-            </div>
-            <div style={{ flex:1, background:'#0f0f2a', borderRadius:10, padding:'.6rem .75rem' }}>
-              <div style={{ fontSize:'.65rem', color:'#606080', fontWeight:600, letterSpacing:'.06em', marginBottom:'.2rem' }}>BÜTÇE</div>
-              <div style={{ fontWeight:800 }}>{club?.budget >= 999999999999 ? 'Sınırsız' : `€${(club?.budget/1e6)||500}M`}</div>
-            </div>
-            <button onClick={() => setEditing(true)}
-              style={{ padding:'.6rem 1rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:700, fontSize:'.8rem', cursor:'pointer' }}>
-              ✏️ Düzenle
-            </button>
-          </div>
-        </div>
+      {/* Koyu overlay */}
+      <div style={{ position:'fixed', inset:0, background:'rgba(5,5,15,0.72)', pointerEvents:'none' }}/>
 
-        {/* Aksiyonlar */}
-        <div style={{ display:'flex', flexDirection:'column', gap:'.75rem' }}>
-          <button onClick={handleCreateLobby} disabled={loading}
-            style={{ padding:'1.1rem', borderRadius:14, border:'none', background:'#7c3aed', color:'#fff', fontWeight:800, fontSize:'1rem', cursor:'pointer', transition:'all .2s' }}>
-            {loading ? 'Oluşturuluyor...' : '⚽ YENİ LOBİ OLUŞTUR'}
-          </button>
+      {/* Sol ve sağ gradient */}
+      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 40% 80% at 0% 50%, rgba(200,80,0,0.15) 0%, transparent 60%)', pointerEvents:'none' }}/>
+      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 40% 80% at 100% 50%, rgba(0,80,200,0.15) 0%, transparent 60%)', pointerEvents:'none' }}/>
 
-          {!showJoin ? (
-            <button onClick={() => setShowJoin(true)}
-              style={{ padding:'1.1rem', borderRadius:14, border:'1px solid #2a2a5a', background:'transparent', color:'#a0a0c0', fontWeight:700, fontSize:'1rem', cursor:'pointer' }}>
-              🔗 Lobiye Katıl
-            </button>
-          ) : (
-            <div style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:14, padding:'1.25rem', display:'flex', flexDirection:'column', gap:'.75rem' }}>
-              <input className="input" placeholder="LOBİ KODU" value={lobbyCode} onChange={e=>setLobbyCode(e.target.value.toUpperCase())} maxLength={6}
-                style={{ letterSpacing:'.2em', fontWeight:700, textAlign:'center', textTransform:'uppercase', fontSize:'1.1rem' }}/>
-              {joinError && <p style={{ color:'#ef4444', fontSize:'.8rem' }}>{joinError}</p>}
-              <div style={{ display:'flex', gap:'.75rem' }}>
-                <button onClick={() => setShowJoin(false)}
-                  style={{ flex:1, padding:'.75rem', borderRadius:10, border:'1px solid #2a2a5a', background:'transparent', color:'#606080', fontWeight:600, cursor:'pointer' }}>
-                  İptal
-                </button>
-                <button onClick={handleJoin} disabled={loading}
-                  style={{ flex:2, padding:'.75rem', borderRadius:10, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, cursor:'pointer' }}>
-                  {loading ? 'Katılıyor...' : 'KATIL →'}
-                </button>
+      <div style={{ width:'100%', maxWidth:640, position:'relative', zIndex:1 }}>
+
+        {/* ANA PANEL */}
+        <div style={{
+          background:'linear-gradient(145deg, rgba(15,15,35,0.95) 0%, rgba(10,10,25,0.98) 100%)',
+          border:'1px solid rgba(124,58,237,0.35)',
+          borderRadius:20,
+          padding:'2rem',
+          marginBottom:'1rem',
+          boxShadow:'0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)',
+          position:'relative',
+          overflow:'hidden',
+          animation:'borderGlow 3s ease-in-out infinite',
+        }}>
+          {/* Karbon fiber doku */}
+          <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize:'4px 4px', pointerEvents:'none', borderRadius:20 }}/>
+
+          {/* Üst kısım: Logo + Bilgi + Kit */}
+          <div style={{ display:'flex', alignItems:'flex-start', gap:'1.5rem', marginBottom:'1.5rem', position:'relative' }}>
+
+            {/* Sol: Logo + Seviye */}
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'.5rem', minWidth:90 }}>
+              <div style={{ position:'relative' }}>
+                <div style={{ position:'absolute', inset:-4, borderRadius:'50%', background:'linear-gradient(135deg, rgba(124,58,237,0.6), rgba(251,191,36,0.4))', filter:'blur(8px)', zIndex:0 }}/>
+                <div style={{ position:'relative', zIndex:1 }}>
+                  <LogoPreview shape={club?.logo?.shape||'shield'} icon={club?.logo?.icon||'⚽'} bgColor={club?.logo?.bg||'#7c3aed'} accentColor={club?.logo?.accent||'#fbbf24'} size={80}/>
+                </div>
+              </div>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:2, color:'rgba(251,191,36,0.8)' }}>SEVİYE 1</div>
+                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>ACEMİ</div>
               </div>
             </div>
-          )}
+
+            {/* Orta: Kulüp bilgileri */}
+            <div style={{ flex:1 }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, letterSpacing:3, background:'linear-gradient(135deg,#fff 0%,rgba(200,200,255,0.8) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1, marginBottom:4 }}>
+                {club?.clubName}
+              </div>
+              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:2, marginBottom:10 }}>
+                MENAJER PROFİLİ
+              </div>
+
+              {/* Menajer stili bloğu */}
+              {managerStyleObj && (
+                <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:`rgba(${managerStyleObj.color.replace('#','').match(/../g).map(h=>parseInt(h,16)).join(',')},0.15)`, border:`1px solid ${managerStyleObj.color}44`, borderRadius:8, padding:'5px 10px', marginBottom:10 }}>
+                  <span style={{ fontSize:14 }}>{managerStyleObj.emoji}</span>
+                  <div>
+                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:1.5, color:managerStyleObj.color }}>{managerStyleObj.name.toUpperCase()} TAKTİK BONUSU</div>
+                    <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.5)' }}>{managerStyleObj.desc}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* İstatistik satırı */}
+              <div style={{ display:'flex', gap:'.6rem' }}>
+                <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'6px 12px', flex:1 }}>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:2 }}>TAKTİKSEL BAKIŞ</div>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <span style={{ fontSize:14 }}>📋</span>
+                    <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>DİZİLİŞ: {club?.formation||'4-4-2'}</span>
+                  </div>
+                </div>
+                <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'6px 12px', flex:1 }}>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:2 }}>TRANSFER BÜTÇESİ</div>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <span style={{ fontSize:14 }}>💰</span>
+                    <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>{club?.budget >= 999999999999 ? '∞ (Sınırsız)' : `€${(club?.budget/1e6)||500}M`}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sağ: Kit 3D stand */}
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'.4rem' }}>
+              <div style={{ position:'relative' }}>
+                <div style={{ position:'absolute', bottom:-8, left:'10%', right:'10%', height:12, background:'rgba(0,0,0,0.4)', borderRadius:'50%', filter:'blur(4px)' }}/>
+                <KitPreview primary={club?.kit?.primary||'#7c3aed'} secondary={club?.kit?.secondary||'#fbbf24'} pattern={club?.kit?.pattern||'solid'} size={80}/>
+              </div>
+              {/* Stand */}
+              <div style={{ width:40, height:4, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)', borderRadius:2 }}/>
+              <button onClick={() => setEditing(true)}
+                style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:6, padding:'4px 10px', color:'rgba(255,255,255,0.5)', fontFamily:"'Rajdhani',sans-serif", fontSize:11, fontWeight:600, cursor:'pointer', letterSpacing:1 }}>
+                ✏️ Düzenle
+              </button>
+              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:9, color:'rgba(255,255,255,0.2)', letterSpacing:1 }}>Özelleştir</div>
+            </div>
+          </div>
+
+          {/* Ayırıcı çizgi */}
+          <div style={{ height:1, background:'linear-gradient(90deg,transparent,rgba(124,58,237,0.4),rgba(251,191,36,0.2),transparent)', marginBottom:'1.25rem' }}/>
+
+          {/* LOBİ BUTONLARI */}
+          <div style={{ display:'flex', flexDirection:'column', gap:'.65rem' }}>
+            <button onClick={handleCreateLobby} disabled={loading}
+              style={{ padding:'1rem', borderRadius:10, border:'none', background:'linear-gradient(135deg,#6d28d9,#7c3aed,#8b5cf6)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:17, letterSpacing:3, cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 8px 25px rgba(124,58,237,0.4)' }}>
+              <div style={{ position:'absolute', top:0, left:'-100%', width:'60%', height:'100%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)', animation:'shimmer 2.5s ease-in-out infinite' }}/>
+              {loading ? 'OLUŞTURULUYOR...' : '⚽ YENİ LOBİ OLUŞTUR'}
+            </button>
+
+            {!showJoin ? (
+              <button onClick={() => setShowJoin(true)}
+                style={{ padding:'.85rem', borderRadius:10, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.5)', fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, cursor:'pointer' }}>
+                🔗 LOBİYE KATIL
+              </button>
+            ) : (
+              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'1rem', display:'flex', flexDirection:'column', gap:'.65rem' }}>
+                <input className="input" placeholder="LOBİ KODU" value={lobbyCode} onChange={e=>setLobbyCode(e.target.value.toUpperCase())} maxLength={6}
+                  style={{ letterSpacing:'.25em', fontWeight:700, textAlign:'center', textTransform:'uppercase', fontSize:'1.1rem', fontFamily:"'Bebas Neue',sans-serif" }}/>
+                {joinError && <p style={{ color:'#ef4444', fontSize:'.8rem', textAlign:'center' }}>{joinError}</p>}
+                <div style={{ display:'flex', gap:'.65rem' }}>
+                  <button onClick={() => setShowJoin(false)}
+                    style={{ flex:1, padding:'.7rem', borderRadius:8, border:'1px solid rgba(255,255,255,0.08)', background:'transparent', color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:1, cursor:'pointer' }}>
+                    İPTAL
+                  </button>
+                  <button onClick={handleJoin} disabled={loading}
+                    style={{ flex:2, padding:'.7rem', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6d28d9,#7c3aed)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, cursor:'pointer' }}>
+                    {loading ? 'KATILIYOR...' : 'KATIL →'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <p style={{ textAlign:'center', color:'#606080', fontSize:'.75rem', marginTop:'1.25rem' }}>
-          Farklı bir kulüpte oynamak için ✏️ Düzenle butonunu kullan
+        <p style={{ textAlign:'center', fontFamily:"'Rajdhani',sans-serif", color:'rgba(255,255,255,0.2)', fontSize:12, letterSpacing:1 }}>
+          Kulüp ve Taktikleri Değiştirmek için <strong style={{ color:'rgba(255,255,255,0.35)' }}>Düzenle</strong> Bölümünü Kullanın.
         </p>
       </div>
     </div>

@@ -10,11 +10,15 @@ export default function IntroPage() {
     if (!video) return
 
     video.play().catch(() => {
-      navigate('/menu', { replace: true })
+      const dest = sessionStorage.getItem('intro_redirect') || '/menu'
+      sessionStorage.removeItem('intro_redirect')
+      navigate(dest, { replace: true })
     })
 
     const handleEnd = () => {
-      navigate('/menu', { replace: true })
+      const dest = sessionStorage.getItem('intro_redirect') || '/menu'
+      sessionStorage.removeItem('intro_redirect')
+      navigate(dest, { replace: true })
     }
 
     video.addEventListener('ended', handleEnd)
@@ -23,7 +27,11 @@ export default function IntroPage() {
 
   return (
     <div
-      onClick={() => navigate('/menu', { replace: true })}
+      onClick={() => {
+        const dest = sessionStorage.getItem('intro_redirect') || '/menu'
+        sessionStorage.removeItem('intro_redirect')
+        navigate(dest, { replace: true })
+      }}
       style={{
         position: 'fixed', inset: 0, background: '#000',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
