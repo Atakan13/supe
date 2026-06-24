@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { LogoPreview } from './MenuPage'
+import { LogoPreview } from '../components/LogoPreview'
 import { playSound } from '../lib/sounds'
 
 function getUserId() {

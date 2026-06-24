@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getClub, saveClub } from '../lib/club'
-import { LogoPreview } from './MenuPage'
+import { LogoPreview } from '../components/LogoPreview'
 
 const LOGO_SHAPES = ['shield','circle','hexagon','diamond','square']
 const LOGO_ICONS  = ['⚽','🦁','🐯','🦅','🐺','🦊','🐻','⭐','🔥','💎','⚔️','🏆','👑','🌙','⚡']
