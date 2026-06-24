@@ -486,6 +486,8 @@ export default function MenuPage() {
   const [joinError, setJoinError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
+  const [selectedBudget, setSelectedBudget] = useState(999999999999)
+  const [selectedFormation, setSelectedFormation] = useState(club?.formation||'4-3-3')
 
   const club = getClub()
 
@@ -506,8 +508,8 @@ export default function MenuPage() {
       const { data: lobby, error: le } = await supabase.from('lobbies').insert({
         code: lobbyCode,
         host_id: userId,
-        formation: c.formation || '4-3-3',
-        budget: 999999999999,
+        formation: selectedFormation,
+        budget: selectedBudget,
       }).select().single()
       if (le) throw le
       await supabase.from('lobby_players').insert({
