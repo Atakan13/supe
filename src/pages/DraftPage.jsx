@@ -416,11 +416,10 @@ export default function DraftPage() {
             const isPicked = i < picks.length
             const isCurrent = i === picks.length
             const pick = picks[i]
-            const cardType = pick ? getCardType(
-              PLAYER_CARDS.find(c=>c.id===pick.player_card_id)?.overall || 70
-            ) : null
+            const pickCard = pick ? PLAYER_CARDS.find(c=>c.id===pick.player_card_id) : null
+            const pickOverall = pickCard?.overall || 0
             const dotColor = isPicked
-              ? (cardType==='special'?'#00c8ff':cardType==='gold'?'#f5e663':cardType==='silver'?'#c0c0c0':'#cd7f32')
+              ? (pickOverall>=85?'#00c8ff':pickOverall>=78?'#f5e663':pickOverall>=72?'#c0c0c0':'#cd7f32')
               : isCurrent
               ? (isMe?'#00c8ff':'#f59e0b')
               : 'rgba(255,255,255,0.08)'
@@ -563,14 +562,14 @@ export default function DraftPage() {
             </div>
             {myPicks.map((pick, i) => {
               const card = pick.player_cards
-              const type = getCardType(card?.overall || 70)
-              const s = getCardStyle(type)
+              const type2 = getCardType(card?.overall || 70)
+              const s2 = getCardStyle(type2)
               return (
                 <div key={pick.id} style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.3rem .45rem', borderRadius:6, marginBottom:'.2rem', background:'rgba(255,255,255,0.03)', border:`1px solid rgba(255,255,255,0.06)`, transition:'all .1s' }}>
                   <span style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:11, color:'rgba(255,255,255,0.2)', minWidth:14, textAlign:'center', flexShrink:0 }}>{i+1}</span>
-                  <span style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:10, color:s.pos, minWidth:28, textAlign:'center', flexShrink:0, letterSpacing:1 }}>{card?.position || pick.squad_position}</span>
+                  <span style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:10, color:s2.pos, minWidth:28, textAlign:'center', flexShrink:0, letterSpacing:1 }}>{card?.position || pick.squad_position}</span>
                   <div style={{ flex:1, minWidth:0, fontFamily:"'Rajdhani', sans-serif", fontWeight:600, fontSize:13, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:'rgba(255,255,255,0.75)' }}>{card?.name}</div>
-                  <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:15, color:s.overall, flexShrink:0 }}>{card?.overall}</div>
+                  <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:15, color:s2.overall, flexShrink:0 }}>{card?.overall}</div>
                 </div>
               )
             })}
