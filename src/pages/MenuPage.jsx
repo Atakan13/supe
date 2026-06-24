@@ -167,49 +167,88 @@ function ClubEditor({ initialClub, onSave, onCancel, showLobbyTab = true }) {
     onSave(club)
   }
 
+  const tabList = showLobbyTab
+    ? ['info','logo','kit','lobby']
+    : ['info','logo','kit']
+  const tabLabels = { info:'Bilgiler', logo:'Logo', kit:'Forma', lobby:'Lobi' }
+  const tabIdx = tabList.indexOf(tab)
+
   return (
-    <div style={{ width:'100%', maxWidth:700, margin:'0 auto' }}>
-      {/* Sekme Nav */}
-      <div style={{ display:'flex', background:'#0f0f2a', borderRadius:12, padding:'.25rem', marginBottom:'1.5rem', gap:'.25rem' }}>
-        {tabs.map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)}
-            style={{ flex:1, padding:'.6rem', borderRadius:9, border:'none', background:tab===t?'#7c3aed':'transparent', color:tab===t?'#fff':'#606080', fontWeight:700, fontSize:'.78rem', cursor:'pointer', transition:'all .15s' }}>
-            {label}
-          </button>
+    <div style={{ width:'100%', maxWidth:580, margin:'0 auto' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
+      `}</style>
+
+      {/* Step progress bar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:0, marginBottom:'2rem' }}>
+        {tabList.map((t, i) => (
+          <div key={t} style={{ display:'flex', alignItems:'center' }}>
+            <div onClick={() => setTab(t)} style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}>
+              <div style={{
+                width:28, height:28, borderRadius:'50%',
+                background: i <= tabIdx ? '#7c3aed' : 'rgba(255,255,255,0.08)',
+                border: `2px solid ${i <= tabIdx ? '#7c3aed' : 'rgba(255,255,255,0.15)'}`,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontFamily:"'Bebas Neue',sans-serif", fontSize:13, color:'#fff',
+                transition:'all .2s',
+              }}>{i+1}</div>
+              <span style={{
+                fontFamily:"'Rajdhani',sans-serif", fontSize:13, fontWeight:600, letterSpacing:1,
+                color: i <= tabIdx ? '#fff' : 'rgba(255,255,255,0.3)',
+              }}>{tabLabels[t].toUpperCase()}</span>
+            </div>
+            {i < tabList.length-1 && (
+              <div style={{ width:40, height:1, background: i < tabIdx ? '#7c3aed' : 'rgba(255,255,255,0.1)', margin:'0 8px' }}/>
+            )}
+          </div>
         ))}
       </div>
 
-      <div style={{ background:'#12122a', border:'1px solid #1e1e4a', borderRadius:16, padding:'1.75rem' }}>
+      <div style={{ background:'rgba(15,12,30,0.95)', border:'1px solid rgba(124,58,237,0.25)', borderRadius:16, padding:'2rem', boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}>
 
         {/* BİLGİLER */}
         {tab==='info' && (
           <div style={{ display:'flex', flexDirection:'column', gap:'1.25rem' }}>
             <div>
-              <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>KULÜP ADI</label>
-              <input className="input" placeholder="örn: Galactic FC" value={clubName} onChange={e=>setClubName(e.target.value)} style={{ fontSize:'1.1rem', fontWeight:700 }}/>
+              <label style={{ display:'block', fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:8 }}>KULÜP ADI</label>
+              <div style={{ position:'relative' }}>
+                <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:16 }}>🛡️</span>
+                <input className="input" placeholder="Kulüp Adı Örn: FC İstanbul" value={clubName} onChange={e=>setClubName(e.target.value)}
+                  style={{ fontSize:'1rem', fontWeight:600, paddingLeft:38, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, color:'#fff' }}/>
+              </div>
             </div>
             <div>
-              <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.5rem' }}>MENAJER ADINIZ</label>
-              <input className="input" placeholder="Adınız" value={managerName} onChange={e=>setManagerName(e.target.value)}/>
+              <label style={{ display:'block', fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:8 }}>MENAJER ADINIZ</label>
+              <div style={{ position:'relative' }}>
+                <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:16 }}>👤</span>
+                <input className="input" placeholder="Menajer Adı Örn: Ayhan Şahin" value={managerName} onChange={e=>setManagerName(e.target.value)}
+                  style={{ paddingLeft:38, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, color:'#fff' }}/>
+              </div>
             </div>
             <div>
-              <label style={{ display:'block', fontSize:'.75rem', fontWeight:700, color:'#a0a0c0', letterSpacing:'.08em', marginBottom:'.75rem' }}>MENAJER STİLİ</label>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.6rem' }}>
-                {MANAGER_STYLES.map(s => (
-                  <div key={s.id} onClick={() => setManagerStyle(s.id)}
-                    style={{ padding:'.85rem', borderRadius:12, border:`2px solid ${managerStyle===s.id?s.color:'#1e1e4a'}`, background:managerStyle===s.id?`${s.color}20`:'#0f0f2a', cursor:'pointer', transition:'all .15s' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:'.6rem', marginBottom:'.35rem' }}>
-                      <span style={{ fontSize:'1.2rem' }}>{s.emoji}</span>
-                      <span style={{ fontWeight:800, fontSize:'.85rem', color:managerStyle===s.id?s.color:'#fff' }}>{s.name}</span>
+              <label style={{ display:'block', fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:3, color:'rgba(255,255,255,0.35)', marginBottom:12 }}>MENAJER STİLİ</label>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.75rem' }}>
+                {MANAGER_STYLES.map(s => {
+                  const isSel = managerStyle===s.id
+                  return (
+                    <div key={s.id} onClick={() => setManagerStyle(s.id)}
+                      style={{ padding:'1rem', borderRadius:12, border:`2px solid ${isSel?s.color:'rgba(255,255,255,0.08)'}`, background:isSel?`${s.color}18`:'rgba(255,255,255,0.03)', cursor:'pointer', transition:'all .15s', position:'relative', overflow:'hidden' }}>
+                      {isSel && <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:s.color }}/>}
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <div>
+                          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontWeight:700, fontSize:15, color:isSel?s.color:'rgba(255,255,255,0.8)', marginBottom:3 }}>{s.name}</div>
+                          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.35)', letterSpacing:0.5 }}>{s.desc}</div>
+                        </div>
+                        <span style={{ fontSize:22, opacity:isSel?1:0.5 }}>{s.emoji}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize:'.72rem', color:'#606080' }}>{s.desc}</div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
             <button onClick={() => setTab('logo')} disabled={!canProceed}
-              style={{ padding:'1rem', borderRadius:10, border:'none', background:canProceed?'#7c3aed':'#1e1e4a', color:canProceed?'#fff':'#606080', fontWeight:700, cursor:canProceed?'pointer':'not-allowed', transition:'all .2s' }}>
-              Sonraki: Logo →
+              style={{ padding:'1rem', borderRadius:10, border:'none', background:canProceed?'linear-gradient(135deg,#6d28d9,#7c3aed)':'rgba(255,255,255,0.06)', color:canProceed?'#fff':'rgba(255,255,255,0.25)', fontFamily:"'Bebas Neue',sans-serif", fontSize:15, letterSpacing:2, cursor:canProceed?'pointer':'not-allowed', transition:'all .2s' }}>
+              SONRAKI: LOGO →
             </button>
           </div>
         )}
@@ -459,26 +498,27 @@ export default function MenuPage() {
   }
 
   // İLK KULÜP OLUŞTURMA
-  if (screen === 'create') return (
-    <div style={{ minHeight:'100vh', background:'#0a0a1a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem' }}>
-      <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
-        <p style={{ color:'#8b5cf6', fontSize:'.7rem', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', marginBottom:'.5rem' }}>HOŞ GELDİN</p>
-        <h1 style={{ fontSize:'2rem', fontWeight:900 }}>Kulübünü Oluştur ⚽</h1>
-        <p style={{ color:'#606080', fontSize:'.85rem', marginTop:'.5rem' }}>Bir kez oluştur, her oyunda kullan</p>
+  const EditorWrapper = ({ title, subtitle, children }) => (
+    <div style={{ minHeight:'100vh', background:'#080c18', backgroundImage:'linear-gradient(rgba(0,200,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.02) 1px,transparent 1px)', backgroundSize:'40px 40px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem', position:'relative' }}>
+      <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 0%,rgba(124,58,237,0.12) 0%,transparent 70%)', pointerEvents:'none' }}/>
+      <div style={{ textAlign:'center', marginBottom:'2rem', position:'relative', zIndex:1 }}>
+        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:4, color:'rgba(124,58,237,0.8)', marginBottom:8 }}>{subtitle}</div>
+        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:32, letterSpacing:3, color:'#fff' }}>{title}</div>
       </div>
-      <ClubEditor initialClub={null} onSave={handleSaveClub} showLobbyTab={true} />
+      <div style={{ position:'relative', zIndex:1, width:'100%' }}>{children}</div>
     </div>
   )
 
-  // DÜZENLEME MODU
+  if (screen === 'create') return (
+    <EditorWrapper title="KULÜBÜNÜ OLUŞTUR ⚽" subtitle="HOŞ GELDİN">
+      <ClubEditor initialClub={null} onSave={handleSaveClub} showLobbyTab={true} />
+    </EditorWrapper>
+  )
+
   if (editing) return (
-    <div style={{ minHeight:'100vh', background:'#0a0a1a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem' }}>
-      <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
-        <p style={{ color:'#8b5cf6', fontSize:'.7rem', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', marginBottom:'.5rem' }}>KULÜP DÜZENLE</p>
-        <h1 style={{ fontSize:'2rem', fontWeight:900 }}>Kulübünü Güncelle ✏️</h1>
-      </div>
+    <EditorWrapper title="KULÜBÜNÜ GÜNCELLE ✏️" subtitle="KULÜP DÜZENLE">
       <ClubEditor initialClub={club} onSave={handleSaveClub} onCancel={() => setEditing(false)} showLobbyTab={true} />
-    </div>
+    </EditorWrapper>
   )
 
   // ANA EKRAN — kulüp mevcut
