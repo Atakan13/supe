@@ -11,10 +11,15 @@ import GamePage from './pages/GamePage'
 import MatchPage from './pages/MatchPage'
 
 function JoinRedirect() {
-  const { code } = window.location.pathname.match(/\/join\/(.+)/)||{}
   const params = window.location.pathname.split('/join/')[1]
-  sessionStorage.setItem('intro_redirect', '/join/' + (params||''))
-  window.location.replace('/')
+  const dest = '/join/' + (params||'')
+  // Intro daha önce gösterildiyse direkt git
+  if (sessionStorage.getItem('intro_shown')) {
+    window.location.replace(dest)
+  } else {
+    sessionStorage.setItem('intro_redirect', dest)
+    window.location.replace('/')
+  }
   return null
 }
 
@@ -28,6 +33,7 @@ function App() {
         <Route path="/create/logo" element={<CreateLogoPage />} />
         <Route path="/create/kit" element={<CreateKitPage />} />
         <Route path="/join/:code" element={<JoinRedirect />} />
+        <Route path="/join-direct/:code" element={<JoinClubPage />} />
         <Route path="/lobby/:code" element={<LobbyPage />} />
         <Route path="/draft/:code" element={<DraftPage />} />
         <Route path="/game/:code" element={<GamePage />} />
