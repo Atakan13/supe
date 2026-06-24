@@ -241,7 +241,7 @@ export default function GamePage() {
 
   const saveSquadInternal = async () => {
     if (!lobby) return
-    const formationSlots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
+    const formationSlots = (FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']).filter(Boolean)
     const squadData = {
       lobby_id: lobby.id,
       user_id: userId,
@@ -386,7 +386,7 @@ export default function GamePage() {
     return '#f87171'
   }
 
-  const formationSlots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
+  const formationSlots = (FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']).filter(Boolean)
   const myTeam = lobbyPlayers.find(p => p.user_id === userId)
   const opTeam = lobbyPlayers.find(p => p.user_id !== userId)
 
@@ -522,7 +522,7 @@ export default function GamePage() {
                   <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
                 </svg>
 
-                {formationSlots.map(([pos, [x, y]], i) => {
+                {formationSlots.map((slot, i) => { const [pos, coords] = slot || []; const [x, y] = coords || [50, 50];
                   const player = squadLineup[i]
                   const isSelectedSlot = selectedSlot === i
                   // Boş slot için öneri oyuncular
