@@ -462,7 +462,7 @@ export default function GamePage() {
                 
                 {/* EV SAHİBİ */}
                 {(() => {
-                  const mySquadPlayers = squadLineup?.filter(Boolean) || []
+                  const mySquadPlayers = lineup?.filter(Boolean) || []
                   const starPlayer = mySquadPlayers.length > 0 
                     ? mySquadPlayers.reduce((best, p) => (p.overall||0) > (best.overall||0) ? p : best, mySquadPlayers[0])
                     : null
@@ -571,7 +571,7 @@ export default function GamePage() {
                   <rect x="84" y="22" width="14" height="26" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
                 </svg>
                 {(FORMATION_POSITIONS[formation]||FORMATION_POSITIONS['4-4-2']).map(([pos,[x,y]],i)=>{
-                  const slotPlayer = squadLineup[i]
+                  const slotPlayer = lineup[i]
                   const hasPlayer = !!slotPlayer
                   return (
                     <div key={i} title={slotPlayer?.name||pos} style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
