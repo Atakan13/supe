@@ -390,6 +390,7 @@ export default function MatchPage() {
 
     const stamina={}
     ;[...homeLineup,...awayLineup].filter(Boolean).forEach(p=>{ if(p.name) stamina[p.name]=100 })
+    const getStam=(name)=>stamina[name]??100
 
     const updateStamina=async(name,loss,mid)=>{
       if(!name||!stamina[name]) return
