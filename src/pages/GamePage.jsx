@@ -445,7 +445,7 @@ export default function GamePage() {
 
         {/* ANA */}
         {activeTab === 'home' && (
-          <div style={{ padding:'1rem 1.5rem', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 300px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
+          <div style={{ padding:'1rem 1.5rem', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 340px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
             <style>{`
               @keyframes shimmer{0%{left:-100%}100%{left:200%}}
               @keyframes pulse2{0%,100%{opacity:1}50%{opacity:0.6}}
@@ -575,10 +575,10 @@ export default function GamePage() {
                   const hasPlayer = !!slotPlayer
                   return (
                     <div key={i} title={slotPlayer?.name||pos} style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
-                      <div style={{ width:20, height:20, borderRadius:'50%', background:hasPlayer?'rgba(255,100,200,0.3)':'rgba(255,255,255,0.1)', border:`1.5px solid ${hasPlayer?'rgba(255,100,200,0.8)':'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        {slotPlayer?.image && <img src={slotPlayer.image} style={{ width:18, height:18, borderRadius:'50%', objectFit:'cover', objectPosition:'top' }}/>}
+                      <div style={{ width:32, height:32, borderRadius:'50%', background:hasPlayer?'rgba(255,100,200,0.3)':'rgba(255,255,255,0.1)', border:`2px solid ${hasPlayer?'rgba(255,100,200,0.8)':'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {slotPlayer?.image && <img src={slotPlayer.image} style={{ width:30, height:30, borderRadius:'50%', objectFit:'cover', objectPosition:'top' }}/>}
                       </div>
-                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:6, color:'rgba(255,255,255,0.6)', letterSpacing:0.3, whiteSpace:'nowrap' }}>{slotPlayer?.name?.split(' ').pop()||pos}</div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'rgba(255,255,255,0.7)', letterSpacing:0.5, whiteSpace:'nowrap' }}>{slotPlayer?.name?.split(' ').pop()||pos}</div>
                     </div>
                   )
                 })}
