@@ -554,163 +554,123 @@ export default function MenuPage() {
         @keyframes shimmer{0%{left:-100%}100%{left:200%}}
       `}</style>
 
-      {/* Koyu overlay */}
-      <div style={{ position:'fixed', inset:0, background:'rgba(5,5,15,0.70)', pointerEvents:'none' }}/>
+      {/* Overlayler */}
+      <div style={{ position:'fixed', inset:0, background:'rgba(5,5,15,0.75)', pointerEvents:'none' }}/>
       <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 45% 80% at 0% 50%, rgba(180,60,0,0.18) 0%, transparent 55%)', pointerEvents:'none' }}/>
       <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 45% 80% at 100% 50%, rgba(0,60,180,0.18) 0%, transparent 55%)', pointerEvents:'none' }}/>
 
-      <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:880 }}>
-
-        {/* 3 kolonlu ana panel */}
+      <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:1000 }}>
         <div style={{
-          display:'grid',
-          gridTemplateColumns:'220px 1fr 140px',
-          gap:0,
-          background:'linear-gradient(145deg,rgba(12,12,28,0.97) 0%,rgba(8,8,20,0.99) 100%)',
-          border:'1px solid rgba(180,120,0,0.35)',
-          borderRadius:16,
+          display:'flex', gap:0,
+          background:'rgba(10,10,15,0.88)',
+          border:'1px solid rgba(255,255,255,0.06)',
+          borderRadius:12,
+          boxShadow:'0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(138,43,226,0.08)',
+          backdropFilter:'blur(10px)',
           overflow:'hidden',
-          boxShadow:'0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}>
 
           {/* SOL PANEL */}
-          <div style={{ background:'rgba(0,0,0,0.25)', borderRight:'1px solid rgba(180,120,0,0.15)', padding:'1.75rem 1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'1rem' }}>
-            
+          <div style={{ width:'25%', display:'flex', flexDirection:'column', alignItems:'center', padding:'2rem 1.25rem', borderRight:'1px solid rgba(255,255,255,0.08)' }}>
             {/* Logo */}
-            <div style={{ position:'relative' }}>
-              <div style={{ position:'absolute', inset:-6, borderRadius:'50%', background:'radial-gradient(circle,rgba(180,120,0,0.3) 0%,transparent 70%)', filter:'blur(8px)' }}/>
-              <div style={{ position:'relative', background:'linear-gradient(145deg,#1a1400,#2a2000)', borderRadius:'50%', padding:6, border:'2px solid rgba(180,120,0,0.4)', boxShadow:'0 0 20px rgba(180,120,0,0.2)' }}>
-                <LogoPreview shape={club?.logo?.shape||'shield'} icon={club?.logo?.icon||'⚽'} bgColor={club?.logo?.bg||'#7c3aed'} accentColor={club?.logo?.accent||'#fbbf24'} size={70}/>
-              </div>
+            <div style={{ border:'2px solid #f39c12', borderRadius:8, padding:5, marginBottom:12, boxShadow:'0 0 15px rgba(243,156,18,0.4)' }}>
+              <LogoPreview shape={club?.logo?.shape||'shield'} icon={club?.logo?.icon||'⚽'} bgColor={club?.logo?.bg||'#7c3aed'} accentColor={club?.logo?.accent||'#fbbf24'} size={80}/>
             </div>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, letterSpacing:2, color:'#f39c12', marginBottom:4 }}>SEVİYE 1: ACEMİ</div>
+            <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.3)', letterSpacing:2, marginBottom:20 }}>MENAJER PROFİLİ</div>
 
-            {/* Seviye */}
-            <div style={{ textAlign:'center' }}>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, color:'rgba(200,160,0,0.9)' }}>SEVİYE 1: Acemi</div>
-              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.3)', letterSpacing:1 }}>MENAJER PROFİLİ</div>
-            </div>
-
-            {/* Taktik Bonus Kutusu */}
+            {/* Taktik Bonus */}
             {managerStyleObj && (
-              <div style={{ width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'.75rem', position:'relative', overflow:'hidden' }}>
-                <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,transparent,${managerStyleObj.color},transparent)` }}/>
-                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-                  <span style={{ fontSize:16 }}>{managerStyleObj.emoji}</span>
-                  <div>
-                    <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:1 }}>Taktik Bonusu:</div>
-                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:1, color:managerStyleObj.color }}>{managerStyleObj.name.toUpperCase()}</div>
-                  </div>
-                </div>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, color:'#4ade80', letterSpacing:1 }}>+5 Atak</div>
-                {/* Bar göstergesi */}
-                <div style={{ display:'flex', gap:2, marginTop:4 }}>
-                  {[managerStyleObj.color,managerStyleObj.color,managerStyleObj.color,'#1e1e1e','#1e1e1e'].map((c,i)=>(
-                    <div key={i} style={{ flex:1, height:4, borderRadius:2, background:c }}/>
-                  ))}
+              <div style={{ background:'rgba(0,0,0,0.5)', borderRadius:8, padding:'12px', width:'100%' }}>
+                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.4)', marginBottom:6 }}>Taktik Bonusu: <span style={{ color:managerStyleObj.color }}>{managerStyleObj.name.toUpperCase()}</span></div>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, color:'#00ffcc', marginBottom:8 }}>+5 ATAK</div>
+                <div style={{ background:'#222', height:6, borderRadius:3, width:'100%' }}>
+                  <div style={{ background:'#00ffcc', width:'30%', height:'100%', borderRadius:3, boxShadow:'0 0 10px #00ffcc' }}/>
                 </div>
               </div>
             )}
           </div>
 
           {/* ORTA PANEL */}
-          <div style={{ padding:'1.75rem 1.5rem', display:'flex', flexDirection:'column', gap:'1.1rem' }}>
-
-            {/* Başlık */}
-            <div>
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:26, letterSpacing:3, color:'#fff', lineHeight:1, marginBottom:2 }}>
-                {club?.clubName || 'SEVİYE 1: Acemi'}
-              </div>
-              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.3)', letterSpacing:2 }}>MENAJER PROFİLİ</div>
+          <div style={{ flex:1, padding:'2rem 1.5rem', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, lineHeight:1, color:'#fff' }}>{club?.clubName||'KULÜP'}</div>
+              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, color:'rgba(255,255,255,0.4)', letterSpacing:3, marginBottom:4 }}>MENAJER PROFİLİ</div>
               {managerStyleObj && (
-                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, color:managerStyleObj.color, marginTop:4 }}>
+                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:13, color:managerStyleObj.color }}>
                   {managerStyleObj.emoji} {managerStyleObj.name} · {managerStyleObj.desc}
                 </div>
               )}
             </div>
 
-            {/* Taktik + Bütçe */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.65rem' }}>
-              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:'.65rem .85rem', gridColumn:'1/-1' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:4 }}>MENAJER STİLİ</div>
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:18 }}>{managerStyleObj?.emoji||'⚡'}</span>
-                  <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:15, letterSpacing:1, color:'rgba(255,255,255,0.85)' }}>{managerStyleObj?.name||'—'} · {managerStyleObj?.desc||''}</span>
-                </div>
-              </div>
+            {/* Menajer stili kutusu */}
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', padding:'12px 16px', borderRadius:8, marginBottom:20, display:'flex', alignItems:'center', gap:10 }}>
+              <span style={{ fontSize:18 }}>{managerStyleObj?.emoji||'⚡'}</span>
+              <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:1, color:'rgba(255,255,255,0.7)' }}>{managerStyleObj?.name?.toUpperCase()||'—'} · {managerStyleObj?.desc||''}</span>
             </div>
 
-            {/* Ayırıcı */}
-            <div style={{ height:1, background:'linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent)' }}/>
+            {/* Bütçe */}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, letterSpacing:2, color:'rgba(255,255,255,0.35)', marginBottom:10 }}>TRANSFER BÜTÇESİ</div>
+              <div style={{ display:'flex', gap:8 }}>
+                {[{label:'€100M',value:100000000},{label:'€300M',value:300000000},{label:'€600M',value:600000000},{label:'∞',value:999999999999}].map(b=>(
+                  <button key={b.value} onClick={()=>setSelectedBudget(b.value)}
+                    style={{ flex:1, background:selectedBudget===b.value?'rgba(138,43,226,0.2)':'rgba(0,0,0,0.4)', border:`1px solid ${selectedBudget===b.value?'#8a2be2':'rgba(255,255,255,0.1)'}`, color:'#fff', padding:'10px', borderRadius:6, cursor:'pointer', fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:1, boxShadow:selectedBudget===b.value?'inset 0 0 10px rgba(138,43,226,0.5)':'none', transition:'all .2s' }}>
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Butonlar */}
-            <div style={{ display:'flex', flexDirection:'column', gap:'.6rem' }}>
-              {/* Bütçe seçimi */}
-              <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'.75rem' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:8 }}>TRANSFER BÜTÇESİ</div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:5 }}>
-                  {[{l:'€100M',v:100000000},{l:'€300M',v:300000000},{l:'€600M',v:600000000},{l:'∞',v:999999999999}].map(b=>(
-                    <div key={b.v} onClick={()=>setSelectedBudget(b.v)}
-                      style={{ padding:'6px 2px', borderRadius:6, border:`1.5px solid ${selectedBudget===b.v?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:selectedBudget===b.v?'rgba(124,58,237,0.2)':'rgba(255,255,255,0.03)', cursor:'pointer', textAlign:'center', transition:'all .15s' }}>
-                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, color:selectedBudget===b.v?'#a78bfa':'rgba(255,255,255,0.4)', letterSpacing:1 }}>{b.l}</div>
-                    </div>
-                  ))}
+            <button onClick={handleCreateLobby} disabled={loading}
+              style={{ width:'100%', background:'linear-gradient(90deg,#8a2be2,#b82bf2)', border:'none', color:'#fff', padding:'15px', fontSize:18, fontWeight:700, fontFamily:"'Bebas Neue',sans-serif", letterSpacing:3, borderRadius:8, cursor:'pointer', marginBottom:12, boxShadow:'0 0 20px rgba(138,43,226,0.6)', position:'relative', overflow:'hidden', transition:'transform .2s, box-shadow .2s' }}>
+              <div style={{ position:'absolute', top:0, left:'-100%', width:'60%', height:'100%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation:'shimmer 2.5s ease-in-out infinite' }}/>
+              {loading ? 'OLUŞTURULUYOR...' : '⚽ YENİ LOBİ OLUŞTUR'}
+            </button>
+
+            {!showJoin ? (
+              <button onClick={() => setShowJoin(true)}
+                style={{ width:'100%', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'#ccc', padding:'15px', fontSize:16, fontFamily:"'Bebas Neue',sans-serif", letterSpacing:2, borderRadius:8, cursor:'pointer', transition:'all .2s' }}>
+                🔗 LOBİYE KATIL
+              </button>
+            ) : (
+              <div style={{ background:'rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'1rem', display:'flex', flexDirection:'column', gap:8 }}>
+                <input className="input" placeholder="LOBİ KODU" value={lobbyCode} onChange={e=>setLobbyCode(e.target.value.toUpperCase())} maxLength={6}
+                  style={{ letterSpacing:'.25em', fontWeight:700, textAlign:'center', textTransform:'uppercase', fontSize:'1rem', fontFamily:"'Bebas Neue',sans-serif" }}/>
+                {joinError && <p style={{ color:'#ef4444', fontSize:'.75rem', textAlign:'center', margin:0 }}>{joinError}</p>}
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => setShowJoin(false)}
+                    style={{ flex:1, padding:'10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.08)', background:'transparent', color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue',sans-serif", fontSize:12, letterSpacing:1, cursor:'pointer' }}>
+                    İPTAL
+                  </button>
+                  <button onClick={handleJoin} disabled={loading}
+                    style={{ flex:2, padding:'10px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#5b21b6,#7c3aed)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, cursor:'pointer' }}>
+                    {loading ? 'KATILIYOR...' : 'KATIL →'}
+                  </button>
                 </div>
               </div>
-              <button onClick={handleCreateLobby} disabled={loading}
-                style={{ padding:'.9rem', borderRadius:9, border:'none', background:'linear-gradient(135deg,#5b21b6,#7c3aed,#8b5cf6)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:3, cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 6px 20px rgba(124,58,237,0.4)' }}>
-                <div style={{ position:'absolute', top:0, left:'-100%', width:'60%', height:'100%', background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation:'shimmer 2.5s ease-in-out infinite' }}/>
-                {loading ? 'OLUŞTURULUYOR...' : '⚽ YENİ LOBİ OLUŞTUR'}
-              </button>
+            )}
 
-              {!showJoin ? (
-                <button onClick={() => setShowJoin(true)}
-                  style={{ padding:'.75rem', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'rgba(255,255,255,0.45)', fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, cursor:'pointer' }}>
-                  🔗 Lobiye Katıl
-                </button>
-              ) : (
-                <div style={{ background:'rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:9, padding:'.85rem', display:'flex', flexDirection:'column', gap:'.5rem' }}>
-                  <input className="input" placeholder="LOBİ KODU" value={lobbyCode} onChange={e=>setLobbyCode(e.target.value.toUpperCase())} maxLength={6}
-                    style={{ letterSpacing:'.25em', fontWeight:700, textAlign:'center', textTransform:'uppercase', fontSize:'1rem', fontFamily:"'Bebas Neue',sans-serif" }}/>
-                  {joinError && <p style={{ color:'#ef4444', fontSize:'.75rem', textAlign:'center', margin:0 }}>{joinError}</p>}
-                  <div style={{ display:'flex', gap:'.5rem' }}>
-                    <button onClick={() => setShowJoin(false)}
-                      style={{ flex:1, padding:'.65rem', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'transparent', color:'rgba(255,255,255,0.3)', fontFamily:"'Bebas Neue',sans-serif", fontSize:12, letterSpacing:1, cursor:'pointer' }}>
-                      İPTAL
-                    </button>
-                    <button onClick={handleJoin} disabled={loading}
-                      style={{ flex:2, padding:'.65rem', borderRadius:7, border:'none', background:'linear-gradient(135deg,#5b21b6,#7c3aed)', color:'#fff', fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, cursor:'pointer' }}>
-                      {loading ? 'KATILIYOR...' : 'KATIL →'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <p style={{ fontFamily:"'Rajdhani',sans-serif", color:'rgba(255,255,255,0.2)', fontSize:11, letterSpacing:0.5, margin:0, textAlign:'center' }}>
+            <p style={{ fontFamily:"'Rajdhani',sans-serif", color:'rgba(255,255,255,0.2)', fontSize:11, letterSpacing:0.5, margin:'12px 0 0', textAlign:'center' }}>
               Kulüp ve Taktikleri Değiştirmek için <strong style={{ color:'rgba(255,255,255,0.4)' }}>Düzenle</strong> Bölümünü Kullanın.
             </p>
           </div>
 
-          {/* SAĞ PANEL: Kit stand */}
-          <div style={{ background:'rgba(0,0,0,0.25)', borderLeft:'1px solid rgba(180,120,0,0.15)', padding:'1.75rem 1rem', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'.75rem' }}>
-            
-            {/* Kit 3D görünüm */}
-            <div style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
-              <KitPreview primary={club?.kit?.primary||'#dc2626'} secondary={club?.kit?.secondary||'#fbbf24'} pattern={club?.kit?.pattern||'solid'} size={115}/>
+          {/* SAĞ PANEL */}
+          <div style={{ width:'25%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'2rem 1.25rem', borderLeft:'1px solid rgba(255,255,255,0.08)', gap:20 }}>
+            {/* Forma */}
+            <div style={{ width:120, height:150, background:'rgba(0,0,0,0.3)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
+              <KitPreview primary={club?.kit?.primary||'#f59e0b'} secondary={club?.kit?.secondary||'#1f2937'} pattern={club?.kit?.pattern||'solid'} size={110}/>
               {/* Stand */}
-              <div style={{ width:50, height:3, background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)', borderRadius:2, marginTop:4 }}/>
-              <div style={{ width:20, height:6, background:'rgba(255,255,255,0.08)', borderRadius:'50%', marginTop:2 }}/>
-              {/* Gölge */}
-              <div style={{ position:'absolute', bottom:-2, left:'15%', right:'15%', height:8, background:'rgba(0,0,0,0.4)', borderRadius:'50%', filter:'blur(4px)', zIndex:-1 }}/>
+              <div style={{ position:'absolute', bottom:-8, left:'15%', right:'15%', height:6, background:'rgba(255,255,255,0.06)', borderRadius:3 }}/>
+              <div style={{ position:'absolute', bottom:-14, left:'30%', right:'30%', height:4, background:'rgba(255,255,255,0.04)', borderRadius:2 }}/>
             </div>
-
-            <div style={{ textAlign:'center' }}>
-              <button onClick={() => navigate('/create/info')}
-                style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, padding:'5px 12px', color:'rgba(255,255,255,0.55)', fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:600, cursor:'pointer', letterSpacing:0.5 }}>
-                ✏️ Düzenle
-              </button>
-              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:9, color:'rgba(255,255,255,0.2)', letterSpacing:1, marginTop:3 }}>Özelleştir</div>
-            </div>
+            <button onClick={() => navigate('/create/info')}
+              style={{ background:'transparent', border:'1px solid rgba(255,255,255,0.2)', color:'#fff', padding:'8px 20px', borderRadius:20, fontFamily:"'Rajdhani',sans-serif", fontWeight:600, cursor:'pointer', fontSize:13, transition:'background .2s' }}>
+              ✏️ Düzenle
+            </button>
+            <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.2)', letterSpacing:1 }}>Özelleştir</div>
           </div>
 
         </div>
