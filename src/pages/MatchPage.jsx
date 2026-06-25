@@ -435,6 +435,7 @@ export default function MatchPage() {
       const fwds=atkLineup.filter(p=>fwdPos.includes(p.squad_pos||p.position))
       const defs=defLineup.filter(p=>defPos.includes(p.squad_pos||p.position))
       const atkPlayer=fwds.length>0?getRand(fwds):atkLineup[0]
+      const atkName=atkPlayer?.name?.split(' ').pop()||'Oyuncu'
       const defPlayer=defs.length>0?getRand(defs):defLineup[0]
 
       let zonePool=ZONES
