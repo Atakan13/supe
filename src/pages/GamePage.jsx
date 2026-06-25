@@ -540,7 +540,7 @@ export default function GamePage() {
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>PUAN DURUMU</div>
                 {(() => {
                   const sorted = [...lobbyPlayers].map(p => {
-                    const st = standingsData.find(s=>s.user_id===p.user_id)||{points:0,played:0,wins:0,goals_for:0,goals_against:0}
+                    const st = standings.find(s=>s.user_id===p.user_id)||{points:0,played:0,wins:0,goals_for:0,goals_against:0}
                     return { ...p, ...st }
                   }).sort((a,b)=>(b.points||0)-(a.points||0))
                   const myIdx = sorted.findIndex(p=>p.user_id===userId)
