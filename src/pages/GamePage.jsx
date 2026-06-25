@@ -210,8 +210,11 @@ export default function GamePage() {
         }
         // Lobi playing durumuna geçince maç ekranına git
         if (p.new.status === 'playing') {
-          const { data: existingMatch } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
-          if (existingMatch) navigate(`/prematch/${existingMatch.id}`)
+          // Maçın oluşmasını bekle
+          setTimeout(async () => {
+            const { data: existingMatch } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
+            if (existingMatch) navigate(`/prematch/${existingMatch.id}`)
+          }, 1500)
         }
       })
       .subscribe()
