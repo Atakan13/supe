@@ -577,10 +577,10 @@ export default function GamePage() {
                   const hasPlayer = !!slotPlayer
                   return (
                     <div key={i} title={slotPlayer?.name||pos} style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
-                      <div style={{ width:26, height:26, borderRadius:'50%', background:hasPlayer?'rgba(255,100,200,0.3)':'rgba(255,255,255,0.1)', border:`2px solid ${hasPlayer?'rgba(255,100,200,0.8)':'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        {slotPlayer?.image && <img src={slotPlayer.image} style={{ width:24, height:24, borderRadius:'50%', objectFit:'cover', objectPosition:'top' }}/>}
+                      <div style={{ width:32, height:32, borderRadius:'50%', background:hasPlayer?'rgba(255,100,200,0.3)':'rgba(255,255,255,0.1)', border:`2px solid ${hasPlayer?'rgba(255,100,200,0.8)':'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {slotPlayer?.image && <img src={slotPlayer.image} style={{ width:30, height:30, borderRadius:'50%', objectFit:'cover', objectPosition:'top' }}/>}
                       </div>
-                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:7, color:'rgba(255,255,255,0.6)', letterSpacing:0.3, whiteSpace:'nowrap' }}>{slotPlayer?.name?.split(' ').pop()||pos}</div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'rgba(255,255,255,0.7)', letterSpacing:0.5, whiteSpace:'nowrap' }}>{slotPlayer?.name?.split(' ').pop()||pos}</div>
                     </div>
                   )
                 })}
