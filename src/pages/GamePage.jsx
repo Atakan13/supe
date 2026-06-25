@@ -205,7 +205,8 @@ export default function GamePage() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lb.id}` }, async (p) => {
         setLobby(p.new)
         lobbyRef.current = p.new
-        if (p.new.match_ready_home && p.new.match_ready_away) {
+        const amIHost = playersRef.current?.find(p => p.user_id === userId)?.is_host
+        if (p.new.match_ready_home && p.new.match_ready_away && amIHost) {
           await createMatch(lb.id, playersRef.current)
         }
         // Lobi playing durumuna geçince maç ekranına git
@@ -242,7 +243,7 @@ export default function GamePage() {
     await supabase.from('lobbies').update(field).eq('id', lobby.id)
     // Her iki taraf hazırsa maçı başlat
     const updatedLobby = { ...lobby, ...field }
-    if (updatedLobby.match_ready_home && updatedLobby.match_ready_away) {
+    if (updatedLobby.match_ready_home && updatedLobby.match_ready_away && isHost) {
       await createMatch(lobby.id, playersRef.current)
     }
   }
