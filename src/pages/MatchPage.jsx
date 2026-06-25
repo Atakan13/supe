@@ -256,7 +256,6 @@ export default function MatchPage() {
         if(u.status==='finished'){
           setIsFinished(true); setPhase('watching')
           addCommentary('🏁 MAÇ SONA ERDİ!','goal')
-          playSound('whistle')
               updateSeasonStats(u,m.lobby_id,pl||[])
           generateMatchReport(u, matchId)
         }
