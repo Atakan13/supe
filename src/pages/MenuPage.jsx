@@ -33,7 +33,11 @@ const LEAGUES = [
   { id:'superlig',   name:'Süper Lig',   flag:'🇹🇷', active:false },
 ]
 const LOGO_SHAPES        = ['circle','shield','diamond','hexagon','square']
-const LOGO_ICONS         = ['⚽','🦁','🐯','🦅','🐺','🦊','🐻','⭐','🔥','💎','⚔️','🏆','👑','🌙','⚡']
+const LOGO_ICONS = [
+  'lightning','cross','demon','dragon','pistol','assasin','avengers',
+  'batman-logo','movie','spiderman','logan','claw-marks','lion','danger',
+  'snake','sloth','sea-turtle','cow','fox'
+]
 const LOGO_BG_COLORS     = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#0891b2','#db2777','#4f46e5','#059669','#b45309']
 const LOGO_ACCENT_COLORS = ['#fbbf24','#ffffff','#f87171','#86efac','#93c5fd','#c4b5fd','#fdba74','#6ee7b7','#fde68a','#bfdbfe']
 const KIT_COLORS         = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#0891b2','#db2777','#1f2937','#ffffff','#f59e0b','#10b981','#ef4444']

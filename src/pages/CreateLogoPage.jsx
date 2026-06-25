@@ -4,7 +4,11 @@ import { getClub, saveClub } from '../lib/club'
 import { LogoPreview } from '../components/LogoPreview'
 
 const LOGO_SHAPES = ['shield','circle','hexagon','diamond','square']
-const LOGO_ICONS  = ['⚽','🦁','🐯','🦅','🐺','🦊','🐻','⭐','🔥','💎','⚔️','🏆','👑','🌙','⚡']
+const LOGO_ICONS = [
+  'lightning','cross','demon','dragon','pistol','assasin','avengers',
+  'batman-logo','movie','spiderman','logan','claw-marks','lion','danger',
+  'snake','sloth','sea-turtle','cow','fox'
+]
 const LOGO_BG_COLORS     = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#0891b2','#db2777','#4f46e5','#059669','#b45309','#111827','#ffffff','#b91c1c','#1d4ed8','#92400e']
 const LOGO_ACCENT_COLORS = ['#fbbf24','#ffffff','#f87171','#86efac','#93c5fd','#c4b5fd','#fdba74','#6ee7b7','#fde68a','#bfdbfe']
 
@@ -67,8 +71,8 @@ export default function CreateLogoPage() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:6 }}>
             {LOGO_ICONS.map(icon => (
               <button key={icon} onClick={() => setLogoIcon(icon)}
-                style={{ width:'100%', aspectRatio:'1', borderRadius:8, border:`1.5px solid ${logoIcon===icon?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:logoIcon===icon?'rgba(124,58,237,0.25)':'rgba(255,255,255,0.03)', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s' }}>
-                {icon}
+                style={{ width:'100%', aspectRatio:'1', borderRadius:8, border:`1.5px solid ${logoIcon===icon?'#7c3aed':'rgba(255,255,255,0.07)'}`, background:logoIcon===icon?'rgba(124,58,237,0.25)':'rgba(255,255,255,0.03)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .15s', padding:4, overflow:'hidden' }}>
+                <img src={`/assets/icons/${icon}.png`} alt={icon} style={{ width:'100%', height:'100%', objectFit:'contain' }}/>
               </button>
             ))}
           </div>
