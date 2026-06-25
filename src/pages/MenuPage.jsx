@@ -562,7 +562,7 @@ export default function MenuPage() {
       <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:1000 }}>
         <div style={{
           display:'flex', gap:0,
-          background:'rgba(10,10,15,0.88)',
+          background:'rgba(10,10,15,0.55)',
           border:'1px solid rgba(255,255,255,0.06)',
           borderRadius:12,
           boxShadow:'0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(138,43,226,0.08)',
@@ -581,7 +581,7 @@ export default function MenuPage() {
 
             {/* Taktik Bonus */}
             {managerStyleObj && (
-              <div style={{ background:'rgba(0,0,0,0.5)', borderRadius:8, padding:'12px', width:'100%' }}>
+              <div style={{ background:'rgba(0,0,0,0.3)', borderRadius:8, padding:'12px', width:'100%' }}>
                 <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.4)', marginBottom:6 }}>Taktik Bonusu: <span style={{ color:managerStyleObj.color }}>{managerStyleObj.name.toUpperCase()}</span></div>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, color:'#00ffcc', marginBottom:8 }}>+5 ATAK</div>
                 <div style={{ background:'#222', height:6, borderRadius:3, width:'100%' }}>
