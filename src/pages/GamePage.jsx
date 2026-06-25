@@ -672,8 +672,9 @@ export default function GamePage() {
             </div>
 
           </div>
+          </div>
         )}
-                {/* KADRO & TAKTİK */}
+        {/* KADRO & TAKTİK */}
         {activeTab === 'squad' && (
           <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', height:'calc(100vh - 112px)', overflow:'hidden' }}>
 
