@@ -98,14 +98,14 @@ function getBestPlayerForPos(pos, players, usedNames) {
 function autoArrange(players, formation) {
   const slots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
   const used = new Set()
-  const squadLineup = slots.map(([pos]) => {
+  const lineup = slots.map(([pos]) => {
     const player = getBestPlayerForPos(pos, players, used)
     if (player) used.add(player.name)
     return player || null
   })
   const bench = players.filter(p => !used.has(p.name)).slice(0, 7)
   const unassigned = players.filter(p => !used.has(p.name) && !bench.find(b => b.name === p.name))
-  return { squadLineup, bench, unassigned }
+  return { lineup, bench, unassigned }
 }
 
 const NEWS_TEMPLATES = [
@@ -132,7 +132,7 @@ export default function GamePage() {
   const [news, setNews] = useState([])
   const [saving, setSaving] = useState(false)
 
-  const [squadLineup, setSquadLineup] = useState(Array(11).fill(null))
+  const [lineup, setLineup] = useState(Array(11).fill(null))
   const [bench, setBench] = useState([])
   const [unassigned, setUnassigned] = useState([])
   const [tactics, setTactics] = useState({ pressing:'high_press', tempo:'normal', attack_width:'mixed', defense_line:'standard', buildup:'short', set_piece:'long' })
@@ -169,9 +169,9 @@ export default function GamePage() {
 
     // Kayıtlı kadro var mı?
     const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', lb.id).eq('user_id', userId).maybeSingle()
-    if (myS && myS.squadLineup && myS.squadLineup.length > 0) {
-      const savedLineup = [...myS.squadLineup, ...Array(11 - myS.squadLineup.length).fill(null)].slice(0, 11)
-      setSquadLineup(savedLineup)
+    if (myS && myS.lineup && myS.lineup.length > 0) {
+      const savedLineup = [...myS.lineup, ...Array(11 - myS.lineup.length).fill(null)].slice(0, 11)
+      setLineup(savedLineup)
       setBench(myS.bench || [])
       if (myS.tactics) setTactics(myS.tactics)
       if (myS.player_roles) setPlayerRoles(myS.player_roles)
@@ -180,12 +180,12 @@ export default function GamePage() {
     } else if (myPlayers.length > 0) {
       // Otomatik diz
       const { lineup: autoLineup, bench: autoBench, unassigned: autoUnassigned } = autoArrange(myPlayers, lb.formation || '4-4-2')
-      setSquadLineup(autoLineup)
+      setLineup(autoLineup)
       setBench(autoBench)
       setUnassigned(autoUnassigned)
     }
 
-    const { data: stats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
+    const { data: standingsStats } = await supabase.from('season_stats').select('*').eq('lobby_id', lb.id)
     setStandingsData(stats || [])
 
     const teams = (pl || []).map(p => p.team_name)
@@ -241,12 +241,12 @@ export default function GamePage() {
 
   const saveSquadInternal = async () => {
     if (!lobby) return
-    const formationSlots = (FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']).filter(Boolean)
+    const formationSlots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
     const squadData = {
       lobby_id: lobby.id,
       user_id: userId,
       formation,
-      lineup: squadLineup.map((p, i) => p ? { ...p, squad_pos: formationSlots[i]?.[0] || p.position } : null).filter(Boolean),
+      lineup: lineup.map((p, i) => p ? { ...p, squad_pos: formationSlots[i]?.[0] || p.position } : null).filter(Boolean),
       bench,
       tactics,
       player_roles: playerRoles,
@@ -265,17 +265,17 @@ export default function GamePage() {
   const handleFormationChange = (newFormation) => {
     setFormation(newFormation)
     // Mevcut oyuncuları yeni dizilişe göre yeniden diz
-    const currentPlayers = [...squadLineup.filter(Boolean), ...bench, ...unassigned]
+    const currentPlayers = [...lineup.filter(Boolean), ...bench, ...unassigned]
     const { lineup: newLineup, bench: newBench, unassigned: newUnassigned } = autoArrange(currentPlayers, newFormation)
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setBench(newBench)
     setUnassigned(newUnassigned)
   }
 
   const handleAutoArrange = () => {
-    const all = [...squadLineup.filter(Boolean), ...bench, ...unassigned]
+    const all = [...lineup.filter(Boolean), ...bench, ...unassigned]
     const { lineup: newLineup, bench: newBench, unassigned: newUnassigned } = autoArrange(all, formation)
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setBench(newBench)
     setUnassigned(newUnassigned)
   }
@@ -288,12 +288,12 @@ export default function GamePage() {
 
   const handleDropOnSlot = (slotIndex) => {
     if (!draggedPlayer) return
-    const newLineup = [...squadLineup]
+    const newLineup = [...lineup]
     const newBench = [...bench]
     const newUnassigned = [...unassigned]
     const existingInSlot = newLineup[slotIndex]
 
-    if (dragSource.type === 'squadLineup') {
+    if (dragSource.type === 'lineup') {
       newLineup[dragSource.index] = existingInSlot || null
     } else if (dragSource.type === 'bench') {
       newBench.splice(dragSource.index, 1)
@@ -305,7 +305,7 @@ export default function GamePage() {
     }
 
     newLineup[slotIndex] = draggedPlayer
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setBench(newBench)
     setUnassigned(newUnassigned)
     setDraggedPlayer(null)
@@ -315,18 +315,18 @@ export default function GamePage() {
 
   const handleDropOnBench = () => {
     if (!draggedPlayer) return
-    const newLineup = [...squadLineup]
+    const newLineup = [...lineup]
     const newBench = [...bench]
     const newUnassigned = [...unassigned]
 
-    if (dragSource.type === 'squadLineup') newLineup[dragSource.index] = null
+    if (dragSource.type === 'lineup') newLineup[dragSource.index] = null
     else if (dragSource.type === 'list') {
       const idx = newUnassigned.findIndex(p => p.id === draggedPlayer.id)
       if (idx > -1) newUnassigned.splice(idx, 1)
     }
 
     if (!newBench.find(p => p.id === draggedPlayer.id)) newBench.push(draggedPlayer)
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setBench(newBench)
     setUnassigned(newUnassigned)
     setDraggedPlayer(null)
@@ -340,7 +340,7 @@ export default function GamePage() {
   }
 
   const handleSlotPlayerPick = (slotIndex, player) => {
-    const newLineup = [...squadLineup]
+    const newLineup = [...lineup]
     const newUnassigned = [...unassigned]
     const newBench = [...bench]
     const existing = newLineup[slotIndex]
@@ -350,18 +350,18 @@ export default function GamePage() {
     const bIdx = newBench.findIndex(p => p.id === player.id)
     if (bIdx > -1) newBench.splice(bIdx, 1)
     newLineup[slotIndex] = player
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setUnassigned(newUnassigned)
     setBench(newBench)
     setSelectedSlot(null)
   }
 
   const removeFromSlot = (slotIndex) => {
-    const player = squadLineup[slotIndex]
+    const player = lineup[slotIndex]
     if (!player) return
-    const newLineup = [...squadLineup]
+    const newLineup = [...lineup]
     newLineup[slotIndex] = null
-    setSquadLineup(newLineup)
+    setLineup(newLineup)
     setUnassigned(prev => [...prev, player])
   }
 
@@ -386,7 +386,7 @@ export default function GamePage() {
     return '#f87171'
   }
 
-  const formationSlots = (FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']).filter(Boolean)
+  const formationSlots = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['4-4-2']
   const myTeam = lobbyPlayers.find(p => p.user_id === userId)
   const opTeam = lobbyPlayers.find(p => p.user_id !== userId)
 
@@ -522,7 +522,9 @@ export default function GamePage() {
                   <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
                 </svg>
 
-                {formationSlots.map((slot, i) => { const [pos, coords] = slot || []; const [x, y] = coords || [50, 50]; const player = squadLineup[i]; const isSelectedSlot = selectedSlot === i;
+                {formationSlots.map(([pos, [x, y]], i) => {
+                  const player = lineup[i]
+                  const isSelectedSlot = selectedSlot === i
                   // Boş slot için öneri oyuncular
                   const suggestions = !player ? [...unassigned, ...bench]
                     .filter(p => {
@@ -539,7 +541,7 @@ export default function GamePage() {
                       style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', zIndex:2 }}
                     >
                       {player ? (
-                        <div draggable onDragStart={() => handleDragStart(player, { type:'squadLineup', index:i })}
+                        <div draggable onDragStart={() => handleDragStart(player, { type:'lineup', index:i })}
                           style={{ position:'relative', cursor:'grab' }}>
                           <button onClick={() => removeFromSlot(i)}
                             style={{ position:'absolute', top:-5, right:-5, width:13, height:13, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:8, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
@@ -801,4 +803,3 @@ export default function GamePage() {
     </div>
   )
 }
-// cache bust Thu Jun 25 06:34:52 UTC 2026
