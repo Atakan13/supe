@@ -563,12 +563,12 @@ export default function GamePage() {
               </div>
               {/* Mini saha */}
               <div style={{ position:'relative', background:'linear-gradient(180deg,#0a2a12 0%,#0d3a18 50%,#0a2a12 100%)', borderRadius:8, height:280, marginBottom:12, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)' }}>
-                <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 70" preserveAspectRatio="none">
-                  <rect x="2" y="2" width="96" height="66" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".6"/>
-                  <line x1="2" y1="35" x2="98" y2="35" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
-                  <circle cx="50" cy="35" r="9" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
-                  <rect x="2" y="22" width="14" height="26" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
-                  <rect x="84" y="22" width="14" height="26" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
+                <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 70 100" preserveAspectRatio="none">
+                  <rect x="2" y="2" width="66" height="96" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".6"/>
+                  <line x1="2" y1="50" x2="68" y2="50" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
+                  <circle cx="35" cy="50" r="9" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
+                  <rect x="22" y="2" width="26" height="12" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
+                  <rect x="22" y="86" width="26" height="12" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
                 </svg>
                 {(FORMATION_POSITIONS[formation]||FORMATION_POSITIONS['4-4-2']).map(([pos,[x,y]],i)=>{
                   const slotPlayer = lineup[i]
