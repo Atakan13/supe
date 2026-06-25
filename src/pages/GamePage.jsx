@@ -241,9 +241,9 @@ export default function GamePage() {
     await saveSquadInternal()
     const field = isHost ? { match_ready_home: newReady } : { match_ready_away: newReady }
     await supabase.from('lobbies').update(field).eq('id', lobby.id)
-    // Her iki taraf hazırsa maçı başlat
-    const updatedLobby = { ...lobby, ...field }
-    if (updatedLobby.match_ready_home && updatedLobby.match_ready_away && isHost) {
+    // DB'den güncel lobi değerini çek
+    const { data: freshLobby } = await supabase.from('lobbies').select('*').eq('id', lobby.id).maybeSingle()
+    if (freshLobby?.match_ready_home && freshLobby?.match_ready_away && isHost) {
       await createMatch(lobby.id, playersRef.current)
     }
   }
