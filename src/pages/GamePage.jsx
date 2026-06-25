@@ -445,7 +445,7 @@ export default function GamePage() {
 
         {/* ANA */}
         {activeTab === 'home' && (
-          <div style={{ padding:'1rem 1.5rem', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 260px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
+          <div style={{ padding:'1rem 1.5rem', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 300px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
             <style>{`
               @keyframes shimmer{0%{left:-100%}100%{left:200%}}
               @keyframes pulse2{0%,100%{opacity:1}50%{opacity:0.6}}
@@ -556,13 +556,13 @@ export default function GamePage() {
             </div>
 
             {/* AKTİF TAKTİKLER */}
-            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem' }}>
+            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem', gridRow:'2 / 4' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)' }}>AKTİF TAKTİKLER</div>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, color:'rgba(255,100,200,0.8)' }}>{formation}</div>
               </div>
               {/* Mini saha */}
-              <div style={{ position:'relative', background:'linear-gradient(180deg,#0a2a12 0%,#0d3a18 50%,#0a2a12 100%)', borderRadius:8, height:160, marginBottom:12, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ position:'relative', background:'linear-gradient(180deg,#0a2a12 0%,#0d3a18 50%,#0a2a12 100%)', borderRadius:8, height:280, marginBottom:12, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)' }}>
                 <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 70" preserveAspectRatio="none">
                   <rect x="2" y="2" width="96" height="66" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".6"/>
                   <line x1="2" y1="35" x2="98" y2="35" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
