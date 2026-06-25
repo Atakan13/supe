@@ -605,7 +605,11 @@ export default function MatchPage() {
   function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
 
-
+  const playersToShow=phase==='pick_attacker'
+    ?myLineup.filter(p=>['ST','CF','LW','RW','LM','RM','CAM','CM'].includes(p.squad_pos||p.position))
+    :phase==='pick_gk'
+    ?myLineup.filter(p=>p.position==='GK'||p.squad_pos==='GK')
+    :myLineup.filter(p=>['CB','LB','RB','CDM','CM'].includes(p.squad_pos||p.position))
 
   if(loading) return <div style={{minHeight:'100vh',background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{color:'#a0a0c0'}}>Maç yükleniyor...</div></div>
 
@@ -613,12 +617,7 @@ export default function MatchPage() {
   const myTeam=lobbyPlayers.find(p=>p.user_id===userId)
   const opTeam=lobbyPlayers.find(p=>p.user_id!==userId)
   const isHome=match?.home_user_id===userId
-  const myLineup=(isHome?homeLineupLive:awayLineupLive)||[]
-  const playersToShow=phase==='pick_attacker'
-    ?myLineup.filter(p=>['ST','CF','LW','RW','LM','RM','CAM','CM'].includes(p.squad_pos||p.position))
-    :phase==='pick_gk'
-    ?myLineup.filter(p=>p.position==='GK'||p.squad_pos==='GK')
-    :myLineup.filter(p=>['CB','LB','RB','CDM','CM'].includes(p.squad_pos||p.position))
+  const myLineup=isHome?homeLineupLive:awayLineupLive
   const myBench=mySquad?.bench||[]
   const myCurrentStamina=isHome?homeStamina:awayStamina
 
