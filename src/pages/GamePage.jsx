@@ -522,9 +522,7 @@ export default function GamePage() {
                   <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
                 </svg>
 
-                {formationSlots.map((slot, i) => { const [pos, coords] = slot || []; const [x, y] = coords || [50, 50]; console.log('slot', i, slot, pos, x, y, squadLineup[i]); return (
-                  const player = squadLineup[i]
-                  const isSelectedSlot = selectedSlot === i
+                {formationSlots.map((slot, i) => { const [pos, coords] = slot || []; const [x, y] = coords || [50, 50]; const player = squadLineup[i]; const isSelectedSlot = selectedSlot === i;
                   // Boş slot için öneri oyuncular
                   const suggestions = !player ? [...unassigned, ...bench]
                     .filter(p => {
