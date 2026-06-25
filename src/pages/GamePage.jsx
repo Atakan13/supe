@@ -616,186 +616,214 @@ export default function GamePage() {
         )}
                 {/* KADRO & TAKTİK */}
         {activeTab === 'squad' && (
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', height:'calc(100vh - 112px)', overflow:'hidden' }}>
+          <div style={{ position:'relative', height:'calc(100vh - 112px)', overflow:'hidden', backgroundImage:'url(/assets/dashboard_bg.png)', backgroundSize:'cover', backgroundPosition:'center', display:'flex', padding:'1rem 1.5rem', fontFamily:"'Rajdhani',sans-serif" }}>
+            <div style={{ position:'absolute', inset:0, background:'rgba(4,4,16,0.85)', pointerEvents:'none' }}/>
+            
+            <style>{`
+              .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+              .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+              .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.5); border-radius: 4px; }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.8); }
+              .player-card .hover-actions { opacity: 0; transition: all 0.2s ease; pointer-events: none; }
+              .player-card:hover .hover-actions { opacity: 1; pointer-events: auto; transform: translateY(0); }
+              .glass-panel { background: rgba(15,15,35,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+              .neon-pitch { border: 2px solid rgba(255,50,150,0.3); box-shadow: 0 0 20px rgba(255,50,150,0.1), inset 0 0 20px rgba(255,50,150,0.05); }
+            `}</style>
 
-            {/* SOL */}
-            <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', borderRight:'1px solid #1e1e4a' }}>
-
-              {/* Formasyon + butonlar */}
-              <div style={{ padding:'.4rem .75rem', borderBottom:'1px solid #1e1e4a', display:'flex', alignItems:'center', gap:'.4rem', flexShrink:0, flexWrap:'wrap', background:'#0a0a1a' }}>
+            <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:1500, margin:'0 auto', display:'flex', flexDirection:'column', gap:'1rem' }}>
+              
+              {/* FORMASYON BUTONLARI */}
+              <div className="glass-panel" style={{ padding:'0.75rem', display:'flex', justifyContent:'center', alignItems:'center', gap:'0.75rem', flexShrink:0 }}>
                 {Object.keys(FORMATION_POSITIONS).map(f => (
                   <button key={f} onClick={() => handleFormationChange(f)}
-                    style={{ padding:'.2rem .55rem', borderRadius:5, border:`1px solid ${formation===f?'#7c3aed':'#2a2a5a'}`, background:formation===f?'rgba(124,58,237,.2)':'transparent', color:formation===f?'#a78bfa':'#606080', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
+                    style={{ padding:'0.4rem 1.5rem', borderRadius:8, border:`1px solid ${formation===f?'#fbbf24':'rgba(255,255,255,0.1)'}`, background:formation===f?'rgba(251,191,36,0.15)':'rgba(0,0,0,0.3)', color:formation===f?'#fbbf24':'#a0a0c0', fontWeight:700, fontSize:'0.9rem', cursor:'pointer', transition:'all 0.2s', fontFamily:"'Rajdhani',sans-serif" }}>
                     {f}
                   </button>
                 ))}
+                <div style={{ width:'1px', height:'24px', background:'rgba(255,255,255,0.1)', margin:'0 0.5rem' }} />
                 <button onClick={handleAutoArrange}
-                  style={{ padding:'.2rem .6rem', borderRadius:5, border:'1px solid #f59e0b', background:'rgba(245,158,11,.1)', color:'#f59e0b', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
+                  style={{ padding:'0.4rem 1rem', borderRadius:8, border:'1px solid #10b981', background:'rgba(16,185,129,0.1)', color:'#10b981', fontWeight:700, fontSize:'0.85rem', cursor:'pointer' }}>
                   ⚡ Otomatik Diz
                 </button>
                 <button onClick={saveSquad} disabled={saving}
-                  style={{ marginLeft:'auto', padding:'.2rem .7rem', borderRadius:5, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
+                  style={{ padding:'0.4rem 1rem', borderRadius:8, border:'none', background:'#7c3aed', color:'#fff', fontWeight:700, fontSize:'0.85rem', cursor:'pointer' }}>
                   {saving ? '...' : '💾 Kaydet'}
                 </button>
               </div>
 
-              {/* Saha */}
-              <div style={{ flex:'0 0 52%', position:'relative', background:'linear-gradient(180deg,#0d3320 0%,#0f4a28 50%,#0d3320 100%)', overflow:'hidden', minHeight:280 }}
-                onDragOver={e => e.preventDefault()}
-              >
-                <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <rect x="3" y="2" width="94" height="96" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth=".4"/>
-                  <line x1="3" y1="50" x2="97" y2="50" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
-                  <circle cx="50" cy="50" r="12" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".3"/>
-                  <rect x="22" y="2" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
-                  <rect x="22" y="80" width="56" height="18" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".3"/>
-                </svg>
+              {/* SAHA VE YEDEKLER */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:'1.25rem', flex:1, minHeight:0 }}>
+                
+                {/* SAHA */}
+                <div className="glass-panel neon-pitch" style={{ position:'relative', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(180deg, rgba(10,25,40,0.8) 0%, rgba(15,10,35,0.9) 100%)' }}
+                  onDragOver={e => e.preventDefault()}>
+                  <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.6 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <rect x="2" y="2" width="96" height="96" fill="none" stroke="#ff007f" strokeWidth="0.3"/>
+                    <line x1="2" y1="50" x2="98" y2="50" stroke="#00ffcc" strokeWidth="0.2"/>
+                    <circle cx="50" cy="50" r="12" fill="none" stroke="#00ffcc" strokeWidth="0.2"/>
+                    <rect x="20" y="2" width="60" height="15" fill="none" stroke="#ff007f" strokeWidth="0.2"/>
+                    <rect x="35" y="2" width="30" height="6" fill="none" stroke="#ff007f" strokeWidth="0.2"/>
+                    <rect x="20" y="83" width="60" height="15" fill="none" stroke="#ff007f" strokeWidth="0.2"/>
+                    <rect x="35" y="92" width="30" height="6" fill="none" stroke="#ff007f" strokeWidth="0.2"/>
+                  </svg>
 
-                {formationSlots.map(([pos, [x, y]], i) => {
-                  const player = lineup[i]
-                  const isSelectedSlot = selectedSlot === i
-                  // Boş slot için öneri oyuncular
-                  const suggestions = !player ? [...unassigned, ...bench]
-                    .filter(p => {
-                      const posGroups = { GK:['GK'], CB:['CB'], LB:['LB','CB'], RB:['RB','CB'], CDM:['CDM','CM'], CM:['CM','CDM','CAM'], CAM:['CAM','CM'], LM:['LM','LW'], RM:['RM','RW'], LW:['LW','LM'], RW:['RW','RM'], ST:['ST','CF'], CF:['CF','ST'] }
-                      return (posGroups[pos] || [pos]).includes(p.position)
-                    })
-                    .sort((a,b) => b.overall - a.overall)
-                    .slice(0, 4) : []
+                  {formationSlots.map(([pos, [x, y]], i) => {
+                    const player = lineup[i]
+                    const isSelectedSlot = selectedSlot === i
+                    const suggestions = !player ? [...unassigned, ...bench]
+                      .filter(p => {
+                        const posGroups = { GK:['GK'], CB:['CB'], LB:['LB','CB'], RB:['RB','CB'], CDM:['CDM','CM'], CM:['CM','CDM','CAM'], CAM:['CAM','CM'], LM:['LM','LW'], RM:['RM','RW'], LW:['LW','LM'], RW:['RW','RM'], ST:['ST','CF'], CF:['CF','ST'] }
+                        return (posGroups[pos] || [pos]).includes(p.position)
+                      })
+                      .sort((a,b) => b.overall - a.overall)
+                      .slice(0, 4) : []
 
-                  return (
-                    <div key={i}
-                      onDragOver={e => e.preventDefault()}
-                      onDrop={() => handleDropOnSlot(i)}
-                      style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', zIndex:2 }}
-                    >
-                      {player ? (
-                        <div draggable onDragStart={() => handleDragStart(player, { type:'lineup', index:i })}
-                          style={{ position:'relative', cursor:'grab' }}>
-                          <button onClick={() => removeFromSlot(i)}
-                            style={{ position:'absolute', top:-5, right:-5, width:13, height:13, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:8, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
-                            ×
-                          </button>
-                          <div
-                            onClick={() => setSelectedPlayerForRole(selectedPlayerForRole?.name===player.name ? null : { ...player, slotPos:pos })}
-                            style={{ position:'relative', width:56, borderRadius:8, overflow:'hidden', boxShadow:'0 4px 15px rgba(0,0,0,0.6)', cursor:'pointer', border:`2px solid ${getPosTextColor(pos)}44` }}>
-                            {/* Arka plan rengi */}
-                            <div style={{ position:'absolute', inset:0, background:getPosColor(pos), opacity:0.9 }}/>
-                            {/* Oyuncu resmi */}
-                            {player.image ? (
-                              <img src={player.image} alt={player.name}
-                                style={{ width:'100%', height:60, objectFit:'cover', objectPosition:'top', display:'block', position:'relative', zIndex:1 }}
-                                onError={e => e.target.style.display='none'}
-                              />
-                            ) : (
-                              <div style={{ height:44, display:'flex', alignItems:'center', justifyContent:'center', position:'relative', zIndex:1 }}>
-                                <svg viewBox="0 0 60 80" width={40} height={52} style={{ opacity:0.6 }}>
-                                  <ellipse cx="30" cy="16" rx="11" ry="12" fill="rgba(255,255,255,0.3)"/>
-                                  <path d="M10 45 C10 28 20 22 30 22 C40 22 50 28 50 45 L48 68 L38 68 L36 50 L30 54 L24 50 L22 68 L12 68 Z" fill="rgba(255,255,255,0.3)"/>
-                                </svg>
+                    return (
+                      <div key={i} className="player-card"
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={() => handleDropOnSlot(i)}
+                        style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', zIndex:isSelectedSlot?50:2 }}>
+                        {player ? (
+                          <div draggable onDragStart={() => handleDragStart(player, { type:'lineup', index:i })} style={{ position:'relative', cursor:'grab' }}>
+                            <div className="hover-actions" style={{ position:'absolute', top:-10, right:-10, zIndex:10 }}>
+                              <button onClick={() => removeFromSlot(i)}
+                                style={{ width:24, height:24, borderRadius:'50%', background:'#ef4444', border:'2px solid #1a1a2e', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}>×</button>
+                            </div>
+                            <div onClick={() => setSelectedPlayerForRole(selectedPlayerForRole?.name===player.name ? null : { ...player, slotPos:pos })}
+                              style={{ width:80, height:105, borderRadius:8, background:'linear-gradient(160deg, rgba(20,20,35,0.95), rgba(10,10,20,0.95))', border:`1px solid ${getPosTextColor(pos)}`, boxShadow:`0 4px 15px rgba(0,0,0,0.6), inset 0 0 10px ${getPosTextColor(pos)}22`, display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
+                              <div style={{ position:'absolute', top:4, left:6, zIndex:2 }}>
+                                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, color:'#fff', lineHeight:1 }}>{player.overall}</div>
+                                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:getPosTextColor(pos), fontWeight:800 }}>{pos}</div>
+                              </div>
+                              <div style={{ height:'65%', display:'flex', alignItems:'flex-end', justifyContent:'center', borderBottom:'1px solid rgba(255,255,255,0.05)', position:'relative' }}>
+                                {player.image ? <img src={player.image} alt={player.name} style={{ width:'85%', height:'100%', objectFit:'cover', objectPosition:'top' }} onError={e => e.target.style.display='none'}/> : <svg viewBox="0 0 60 80" width="50" height="60" style={{ opacity:0.3 }}><ellipse cx="30" cy="16" rx="11" ry="12" fill="#fff"/><path d="M10 45 C10 28 20 22 30 22 C40 22 50 28 50 45 L48 68 L38 68 L36 50 L30 54 L24 50 L22 68 L12 68 Z" fill="#fff"/></svg>}
+                              </div>
+                              <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.5)', padding:'2px 4px' }}>
+                                <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, fontWeight:700, color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', width:'100%', textAlign:'center' }}>{(player.name||'').split(' ').pop()}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ position:'relative' }}>
+                            <div onClick={() => handleEmptySlotClick(i)}
+                              style={{ width:70, height:90, borderRadius:8, border:`2px dashed ${isSelectedSlot?getPosTextColor(pos):'rgba(255,255,255,0.15)'}`, background:isSelectedSlot?`${getPosColor(pos)}99`:'rgba(0,0,0,0.4)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                              <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:'1rem', color:getPosTextColor(pos), fontWeight:800 }}>{pos}</div>
+                              <div style={{ fontSize:'0.65rem', color:'rgba(255,255,255,0.4)' }}>Ekle</div>
+                            </div>
+                            {isSelectedSlot && suggestions.length > 0 && (
+                              <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', zIndex:50, background:'rgba(15,15,35,0.95)', border:'1px solid #7c3aed', borderRadius:8, padding:'0.5rem', minWidth:160, boxShadow:'0 8px 30px rgba(0,0,0,0.8)', marginTop:8 }}>
+                                <div style={{ fontSize:'0.65rem', color:'#8b5cf6', fontWeight:800, marginBottom:'0.5rem', letterSpacing:'1px' }}>ÖNERİLENLER</div>
+                                {suggestions.map(s => (
+                                  <div key={s.id} onClick={() => handleSlotPlayerPick(i, s)}
+                                    style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.4rem', borderRadius:6, cursor:'pointer', marginBottom:'0.2rem', background:'rgba(124,58,237,0.1)' }}>
+                                    <span style={{ background:getPosColor(s.position), color:getPosTextColor(s.position), fontSize:'0.65rem', fontWeight:800, padding:'0.15rem 0.3rem', borderRadius:4, minWidth:30, textAlign:'center' }}>{s.position}</span>
+                                    <span style={{ fontSize:'0.8rem', fontWeight:600, flex:1, color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.name.split(' ').pop()}</span>
+                                    <span style={{ fontSize:'0.85rem', fontWeight:800, color:'#fbbf24' }}>{s.overall}</span>
+                                  </div>
+                                ))}
                               </div>
                             )}
-                            {/* Alt bilgi */}
-                            <div style={{ position:'relative', zIndex:2, padding:'2px 3px', background:'rgba(0,0,0,0.7)', textAlign:'center' }}>
-                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                                <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:getPosTextColor(pos), letterSpacing:0.5 }}>{pos}</span>
-                                <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:'#ffd700' }}>{player.overall}</span>
-                              </div>
-                              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', letterSpacing:0.5 }}>{(player.name||'').split(' ').pop()}</div>
-                              {playerRoles[player.name] && (
-                                <div style={{ fontSize:7, color:getPosTextColor(pos), whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', opacity:0.8 }}>
-                                  {(PLAYER_ROLES[pos]||PLAYER_ROLES[player.position]||[]).find(r=>r.id===playerRoles[player.name])?.name?.split(' ')[0]}
-                                </div>
-                              )}
-                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div style={{ position:'relative' }}>
-                          <div onClick={() => handleEmptySlotClick(i)}
-                            style={{ width:52, height:48, borderRadius:6, border:`1.5px dashed ${isSelectedSlot?getPosTextColor(pos):'rgba(255,255,255,.2)'}`, background:isSelectedSlot?`${getPosColor(pos)}99`:'rgba(0,0,0,.3)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                            <div style={{ fontSize:'.6rem', color:getPosTextColor(pos), fontWeight:700 }}>{pos}</div>
-                            <div style={{ fontSize:'.48rem', color:'rgba(255,255,255,.4)' }}>Tıkla/Sürükle</div>
-                          </div>
-                          {isSelectedSlot && suggestions.length > 0 && (
-                            <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', zIndex:50, background:'#12122a', border:'1px solid #7c3aed', borderRadius:8, padding:'.4rem', minWidth:130, boxShadow:'0 4px 20px rgba(0,0,0,.8)', marginTop:2 }}>
-                              <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, marginBottom:'.3rem', letterSpacing:'.04em' }}>EN UYGUN OYUNCULAR</div>
-                              {suggestions.map(s => (
-                                <div key={s.id} onClick={() => handleSlotPlayerPick(i, s)}
-                                  style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.3rem .4rem', borderRadius:5, cursor:'pointer', marginBottom:'.15rem', background:'rgba(124,58,237,.1)' }}
-                                  onMouseEnter={e=>e.currentTarget.style.background='rgba(124,58,237,.25)'}
-                                  onMouseLeave={e=>e.currentTarget.style.background='rgba(124,58,237,.1)'}
-                                >
-                                  <span style={{ background:getPosColor(s.position), color:getPosTextColor(s.position), fontSize:'.55rem', fontWeight:700, padding:'.1rem .25rem', borderRadius:3, minWidth:26, textAlign:'center' }}>{s.position}</span>
-                                  <span style={{ fontSize:'.68rem', fontWeight:600, flex:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.name}</span>
-                                  <span style={{ fontSize:'.72rem', fontWeight:800, color:'#fbbf24' }}>{s.overall}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                        )}
+                      </div>
+                    )
+                  })}
 
-              {/* Rol seçim */}
-              {selectedPlayerForRole && (
-                <div style={{ padding:'.6rem 1rem', borderTop:'1px solid #1e1e4a', background:'#0a0a1a', flexShrink:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'.4rem' }}>
-                    <div style={{ fontWeight:700, fontSize:'.8rem' }}>{selectedPlayerForRole.name} — Rol</div>
-                    <button onClick={() => setSelectedPlayerForRole(null)} style={{ background:'none', border:'none', color:'#606080', cursor:'pointer', fontSize:'.9rem' }}>✕</button>
-                  </div>
-                  <div style={{ display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
-                    {(PLAYER_ROLES[selectedPlayerForRole.slotPos] || PLAYER_ROLES[selectedPlayerForRole.position] || []).map(role => (
-                      <button key={role.id} onClick={() => setPlayerRoles(prev => ({ ...prev, [selectedPlayerForRole.name]: role.id }))}
-                        title={role.desc}
-                        style={{ padding:'.25rem .55rem', borderRadius:6, border:`1.5px solid ${playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#2a2a5a'}`, background:playerRoles[selectedPlayerForRole.name]===role.id?'rgba(124,58,237,.2)':'#12122a', color:playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'#606080', fontWeight:700, fontSize:'.7rem', cursor:'pointer' }}>
-                        {role.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Yedekler */}
-              <div style={{ borderTop:'1px solid #1e1e4a', padding:'.4rem .75rem', flexShrink:0, background:'rgba(0,0,0,.15)' }}
-                onDragOver={e => e.preventDefault()} onDrop={handleDropOnBench}>
-                <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.3rem' }}>YEDEKLER ({bench.length}/7)</div>
-                <div style={{ display:'flex', gap:'.3rem', flexWrap:'wrap' }}>
-                  {bench.map((player, i) => (
-                    <div key={i} draggable onDragStart={() => handleDragStart(player, { type:'bench', index:i })}
-                      style={{ position:'relative', cursor:'grab' }}>
-                      <button onClick={() => removeFromBench(i)}
-                        style={{ position:'absolute', top:-4, right:-4, width:12, height:12, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', fontSize:7, fontWeight:900, cursor:'pointer', zIndex:10, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
-                        ×
-                      </button>
-                      <div style={{ background:getPosColor(player.position), border:`1px solid ${getPosTextColor(player.position)}`, borderRadius:5, padding:'2px 5px', textAlign:'center', minWidth:44 }}>
-                        <div style={{ fontSize:'.72rem', fontWeight:900, color:'#fbbf24' }}>{player.overall}</div>
-                        <div style={{ fontSize:'.5rem', color:'#fff', whiteSpace:'nowrap', maxWidth:44, overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
+                  {selectedPlayerForRole && (
+                    <div style={{ position:'absolute', bottom:20, left:'50%', transform:'translateX(-50%)', background:'rgba(10,10,25,0.95)', border:'1px solid #7c3aed', borderRadius:12, padding:'1rem', zIndex:100, boxShadow:'0 10px 40px rgba(0,0,0,0.8)', minWidth:300 }}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.75rem', borderBottom:'1px solid rgba(255,255,255,0.1)', paddingBottom:'0.5rem' }}>
+                        <div style={{ fontWeight:800, fontSize:'1rem', color:'#fff' }}><span style={{color:'#a78bfa'}}>{selectedPlayerForRole.name}</span> — Rol Seçimi</div>
+                        <button onClick={() => setSelectedPlayerForRole(null)} style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:18 }}>×</button>
+                      </div>
+                      <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap', justifyContent:'center' }}>
+                        {(PLAYER_ROLES[selectedPlayerForRole.slotPos] || PLAYER_ROLES[selectedPlayerForRole.position] || []).map(role => (
+                          <button key={role.id} onClick={() => setPlayerRoles(prev => ({ ...prev, [selectedPlayerForRole.name]: role.id }))}
+                            style={{ padding:'0.4rem 0.75rem', borderRadius:6, border:`1px solid ${playerRoles[selectedPlayerForRole.name]===role.id?'#a78bfa':'rgba(255,255,255,0.1)'}`, background:playerRoles[selectedPlayerForRole.name]===role.id?'rgba(124,58,237,0.2)':'rgba(0,0,0,0.4)', color:playerRoles[selectedPlayerForRole.name]===role.id?'#fff':'#a0a0c0', fontWeight:700, fontSize:'0.8rem', cursor:'pointer' }}>
+                            {role.name}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                  {bench.length < 7 && Array.from({ length:7-bench.length }).map((_,i) => (
-                    <div key={'eb'+i} style={{ width:44, height:36, borderRadius:5, border:'1px dashed #2a2a5a', background:'rgba(0,0,0,.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <span style={{ fontSize:'.5rem', color:'rgba(255,255,255,.2)' }}>Yedek</span>
+                  )}
+                </div>
+
+                {/* SAĞ SIDEBAR */}
+                <div className="glass-panel" style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
+                  <div style={{ padding:'1rem', borderBottom:'1px solid rgba(255,255,255,0.08)', background:'rgba(0,0,0,0.2)' }}
+                    onDragOver={e => e.preventDefault()} onDrop={handleDropOnBench}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.75rem' }}>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'1.1rem', color:'#fff', letterSpacing:'1px' }}>KULÜBE & YEDEKLER</div>
+                      <div style={{ fontSize:'0.75rem', color:'#a0a0c0', fontWeight:700, background:'rgba(0,0,0,0.5)', padding:'2px 8px', borderRadius:12 }}>{bench.length}/7</div>
                     </div>
-                  ))}
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(65px, 1fr))', gap:'0.5rem' }}>
+                      {bench.map((player, i) => (
+                        <div key={i} className="player-card" draggable onDragStart={() => handleDragStart(player, { type:'bench', index:i })} style={{ position:'relative', cursor:'grab' }}>
+                          <div className="hover-actions" style={{ position:'absolute', top:-6, right:-6, zIndex:10 }}>
+                            <button onClick={() => removeFromBench(i)} style={{ width:18, height:18, borderRadius:'50%', background:'#ef4444', border:'none', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}>×</button>
+                          </div>
+                          <div style={{ width:'100%', aspectRatio:'2.5/3.5', borderRadius:6, background:'linear-gradient(160deg, #1e293b, #0f172a)', border:`1px solid ${getPosTextColor(player.position)}66`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', padding:'2px 4px', background:'rgba(0,0,0,0.4)' }}>
+                              <span style={{ fontSize:'0.65rem', fontWeight:800, color:getPosTextColor(player.position) }}>{player.position}</span>
+                              <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#fbbf24' }}>{player.overall}</span>
+                            </div>
+                            <div style={{ flex:1, display:'flex', alignItems:'flex-end', justifyContent:'center', overflow:'hidden', background:'rgba(255,255,255,0.02)' }}>
+                              {player.image ? <img src={player.image} style={{ width:'80%', height:'auto' }} onError={e=>e.target.style.display='none'}/> : null}
+                            </div>
+                            <div style={{ fontSize:'0.6rem', fontWeight:700, color:'#fff', textAlign:'center', background:'rgba(0,0,0,0.6)', padding:'2px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{(player.name||'').split(' ').pop()}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {bench.length < 7 && Array.from({ length:7-bench.length }).map((_,i) => (
+                        <div key={'eb'+i} style={{ width:'100%', aspectRatio:'2.5/3.5', borderRadius:6, border:'1px dashed rgba(255,255,255,0.15)', background:'rgba(0,0,0,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <span style={{ fontSize:'1.5rem', color:'rgba(255,255,255,0.05)' }}>+</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
+                    <div style={{ padding:'0.75rem 1rem', background:'rgba(0,0,0,0.3)', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'1rem', color:'rgba(255,255,255,0.6)', letterSpacing:'1px' }}>ATANMAMIŞ OYUNCULAR</div>
+                    </div>
+                    <div className="custom-scrollbar" style={{ flex:1, overflowY:'auto', padding:'0.75rem' }}>
+                      {unassigned.length === 0 && <div style={{ textAlign:'center', color:'#10b981', fontSize:'0.85rem', padding:'2rem 1rem', fontWeight:600 }}>✅ Tüm oyuncular yerleştirildi!</div>}
+                      <div style={{ display:'flex', flexDirection:'column', gap:'0.4rem' }}>
+                        {[...unassigned].sort((a,b) => {
+                          const order = { GK:0, CB:1, LB:2, RB:3, CDM:4, CM:5, CAM:6, LM:7, RM:8, LW:9, RW:10, ST:11, CF:12 }
+                          return (order[a.position]||99) - (order[b.position]||99) || b.overall - a.overall
+                        }).map((player, i) => (
+                          <div key={player.id||i} draggable onDragStart={() => handleDragStart(player, { type:'list', index:i })}
+                            style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.5rem 0.75rem', borderRadius:8, background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.05)', cursor:'grab' }}
+                            onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(124,58,237,0.5)'; e.currentTarget.style.background='rgba(124,58,237,0.1)';}}
+                            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.05)'; e.currentTarget.style.background='rgba(0,0,0,0.4)';}}
+                          >
+                            <div style={{ background:getPosColor(player.position), border:`1px solid ${getPosTextColor(player.position)}`, color:'#fff', fontSize:'0.7rem', fontWeight:800, padding:'0.2rem 0', borderRadius:6, width:36, textAlign:'center', flexShrink:0 }}>{player.position}</div>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ fontWeight:700, fontSize:'0.85rem', color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{player.name}</div>
+                            </div>
+                            <div style={{ fontWeight:900, color:'#fbbf24', fontSize:'0.95rem', flexShrink:0 }}>{player.overall}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Taktikler */}
-              <div style={{ borderTop:'1px solid #1e1e4a', padding:'.5rem .75rem', flexShrink:0, background:'#0a0a1a', overflowX:'auto' }}>
-                <div style={{ fontSize:'.58rem', color:'#606080', fontWeight:700, letterSpacing:'.06em', marginBottom:'.4rem' }}>TAKTİKLER</div>
-                <div style={{ display:'flex', gap:'.75rem', flexWrap:'wrap' }}>
+              {/* TAKTİK AYARLARI */}
+              <div className="glass-panel" style={{ padding:'0 1.25rem', display:'flex', alignItems:'center', flexShrink:0, height:'70px' }}>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'1.2rem', color:'#fff', letterSpacing:'1px', borderRight:'1px solid rgba(255,255,255,0.1)', paddingRight:'1.5rem', marginRight:'1.5rem' }}>
+                  <span>TAKTİK</span><br/>
+                  <span style={{ color:'#8b5cf6' }}>AYARLARI</span>
+                </div>
+                <div className="custom-scrollbar" style={{ display:'flex', gap:'1.5rem', flex:1, overflowX:'auto', alignItems:'center', height:'100%' }}>
                   {Object.entries(TACTICS_CONFIG).map(([key, config]) => (
-                    <div key={key} style={{ minWidth:110 }}>
-                      <div style={{ fontSize:'.6rem', color:'#a0a0c0', fontWeight:700, marginBottom:'.2rem' }}>{config.icon} {config.label}</div>
+                    <div key={key} style={{ display:'flex', flexDirection:'column', gap:'0.3rem', minWidth:'140px' }}>
+                      <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.5)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px' }}>{config.label}</div>
                       <select value={tactics[key]} onChange={e => setTactics(prev => ({ ...prev, [key]:e.target.value }))}
-                        style={{ width:'100%', background:'#12122a', border:'1px solid #2a2a5a', borderRadius:5, padding:'.2rem .35rem', color:'#a78bfa', fontSize:'.68rem', outline:'none', cursor:'pointer' }}>
+                        style={{ appearance:'none', width:'100%', background:'rgba(0,0,0,0.4)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:6, padding:'0.5rem 0.75rem', color:'#fff', fontSize:'0.85rem', fontWeight:600, outline:'none', cursor:'pointer', fontFamily:"'Rajdhani',sans-serif" }}>
                         {config.options.map(opt => (
-                          <option key={opt.id} value={opt.id}>{opt.name}</option>
+                          <option key={opt.id} value={opt.id} style={{ background:'#0f0f2a', color:'#fff' }}>{opt.name}</option>
                         ))}
                       </select>
                     </div>
@@ -803,41 +831,9 @@ export default function GamePage() {
                 </div>
               </div>
             </div>
-
-            {/* SAĞ: Oyuncu listesi */}
-            <div style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
-              <div style={{ padding:'.6rem .75rem', borderBottom:'1px solid #1e1e4a', flexShrink:0, background:'#0a0a1a' }}>
-                <div style={{ fontWeight:800, fontSize:'.82rem' }}>Oyuncular</div>
-                <div style={{ color:'#606080', fontSize:'.65rem' }}>Sürükle → sahaya veya yedeğe bırak</div>
-              </div>
-              <div style={{ flex:1, overflowY:'auto', padding:'.4rem' }}>
-                {unassigned.length === 0 && (
-                  <div style={{ textAlign:'center', color:'#10b981', fontSize:'.8rem', padding:'1.5rem', fontWeight:600 }}>✅ Tüm oyuncular yerleştirildi!</div>
-                )}
-                {[...unassigned].sort((a,b) => {
-                  const order = { GK:0, CB:1, LB:2, RB:3, CDM:4, CM:5, CAM:6, LM:7, RM:8, LW:9, RW:10, ST:11, CF:12 }
-                  return (order[a.position]||99) - (order[b.position]||99) || b.overall - a.overall
-                }).map((player, i) => (
-                  <div key={player.id||i} draggable
-                    onDragStart={() => handleDragStart(player, { type:'list', index:i })}
-                    style={{ display:'flex', alignItems:'center', gap:'.35rem', padding:'.35rem .5rem', borderRadius:7, marginBottom:'.2rem', background:'#12122a', border:'1px solid #1e1e4a', cursor:'grab', transition:'border-color .1s' }}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor='#7c3aed'}
-                    onMouseLeave={e=>e.currentTarget.style.borderColor='#1e1e4a'}
-                  >
-                    <span style={{ background:getPosColor(player.position), color:getPosTextColor(player.position), fontSize:'.55rem', fontWeight:700, padding:'.1rem .28rem', borderRadius:4, minWidth:28, textAlign:'center', flexShrink:0 }}>{player.position}</span>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:700, fontSize:'.72rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{player.name}</div>
-                      <div style={{ color:'#606080', fontSize:'.6rem' }}>{player.club}</div>
-                    </div>
-                    <div style={{ fontWeight:800, color:'#fbbf24', fontSize:'.78rem', flexShrink:0 }}>{player.overall}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
-
-        {/* PUAN TABLOSU */}
+                {/* PUAN TABLOSU */}
         {activeTab === 'standings' && (
           <div style={{ padding:'1.5rem', maxWidth:700, margin:'0 auto' }}>
             <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(0,200,255,0.12)', borderRadius:14, overflow:'hidden', boxShadow:'0 8px 30px rgba(0,0,0,0.4)' }}>
