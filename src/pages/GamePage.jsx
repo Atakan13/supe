@@ -445,7 +445,7 @@ export default function GamePage() {
 
         {/* ANA */}
         {activeTab === 'home' && (
-          <div style={{ backgroundImage:'url(/assets/dashboard_bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', minHeight:'calc(100vh - 60px)', position:'relative' }}>
+          <div style={{ backgroundImage:'url(/assets/dashboard_bg.png)', backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'fixed', minHeight:'calc(100vh - 60px)', position:'relative' }}>
           <div style={{ position:'absolute', inset:0, background:'rgba(4,4,16,0.82)', pointerEvents:'none' }}/>
           <div style={{ padding:'1rem 1.5rem', position:'relative', zIndex:1, maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 340px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
             <style>{`
