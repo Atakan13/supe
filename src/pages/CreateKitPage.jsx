@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getClub, saveClub } from '../lib/club'
 import { KitPreview } from './MenuPage'
+import JerseyViewer from '../components/JerseyViewer'
 
 const KIT_COLORS = ['#7c3aed','#2563eb','#dc2626','#16a34a','#d97706','#0891b2','#db2777','#1f2937','#ffffff','#f59e0b','#10b981','#ef4444','#0ea5e9','#8b5cf6','#ec4899','#14b8a6']
 const KIT_PATTERNS = [
@@ -65,12 +66,9 @@ export default function CreateKitPage() {
           <div style={{ background:'rgba(15,12,30,0.95)', border:'1px solid rgba(124,58,237,0.25)', borderRadius:16, padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.25rem' }}>
             <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, letterSpacing:2, color:'rgba(255,255,255,0.6)' }}>FORMA TASARIMI</div>
 
-            {/* Forma önizleme */}
-            <div style={{ display:'flex', justifyContent:'center', padding:'1rem 0' }}>
-              <div style={{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center' }}>
-                <KitPreview primary={kitPrimary} secondary={kitSecondary} pattern={kitPattern} size={120}/>
-                <div style={{ width:80, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, marginTop:6 }}/>
-              </div>
+            {/* Forma önizleme - 3D */}
+            <div style={{ height:220, borderRadius:10, overflow:'hidden', background:'rgba(0,0,0,0.3)', marginBottom:8 }}>
+              <JerseyViewer primary={kitPrimary} secondary={kitSecondary} pattern={kitPattern} />
             </div>
 
             <div>
