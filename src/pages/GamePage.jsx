@@ -214,7 +214,7 @@ export default function GamePage() {
           // Maçın oluşmasını bekle
           setTimeout(async () => {
             const { data: existingMatch } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
-            if (existingMatch) navigate(`/prematch/${existingMatch.id}`)
+            if (existingMatch) navigate(`/match/${existingMatch.id}`)
           }, 1500)
         }
       })
@@ -223,14 +223,14 @@ export default function GamePage() {
 
   const createMatch = async (lobbyId, players) => {
     const { data: existing } = await supabase.from('matches').select('id').eq('lobby_id', lobbyId).maybeSingle()
-    if (existing) { navigate(`/prematch/${existing.id}`); return }
+    if (existing) { navigate(`/match/${existing.id}`); return }
     const home = players[0], away = players[1]
     if (!home || !away) return
     const { data: match } = await supabase.from('matches').insert({
       lobby_id: lobbyId, home_user_id: home.user_id, away_user_id: away.user_id, status: 'active'
     }).select().single()
     await supabase.from('lobbies').update({ status: 'playing', match_ready_home: false, match_ready_away: false }).eq('id', lobbyId)
-    if (match) navigate(`/prematch/${match.id}`)
+    if (match) navigate(`/match/${match.id}`)
   }
 
   const handleReadyForMatch = async () => {
