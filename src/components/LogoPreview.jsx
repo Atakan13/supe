@@ -9,12 +9,23 @@ export function LogoPreview({ shape, icon, bgColor, accentColor, size=80 }) {
       default: return null
     }
   }
+
+  // PNG ikon mu emoji mi?
+  const isPng = icon && !icon.includes(' ') && icon.length > 2
+
   return (
-    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`}>
-      {shape==='circle'
-        ? <circle cx={s/2} cy={s/2} r={s*.45} fill={bgColor} stroke={accentColor} strokeWidth={s*.04}/>
-        : <path d={getPath()} fill={bgColor} stroke={accentColor} strokeWidth={s*.04}/>}
-      <text x={s/2} y={s/2} textAnchor="middle" dominantBaseline="central" fontSize={s*.38}>{icon}</text>
-    </svg>
+    <div style={{ position:'relative', width:s, height:s, display:'inline-block', flexShrink:0 }}>
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ position:'absolute', inset:0 }}>
+        {shape==='circle'
+          ? <circle cx={s/2} cy={s/2} r={s*.45} fill={bgColor} stroke={accentColor} strokeWidth={s*.04}/>
+          : <path d={getPath()} fill={bgColor} stroke={accentColor} strokeWidth={s*.04}/>}
+      </svg>
+      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {isPng
+          ? <img src={`/assets/icons/${icon}.png`} alt={icon} style={{ width:s*.6, height:s*.6, objectFit:'contain' }} onError={e => e.target.style.display='none'}/>
+          : <span style={{ fontSize:s*.38, lineHeight:1 }}>{icon}</span>
+        }
+      </div>
+    </div>
   )
 }
