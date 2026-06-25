@@ -208,6 +208,11 @@ export default function GamePage() {
         if (p.new.match_ready_home && p.new.match_ready_away) {
           await createMatch(lb.id, playersRef.current)
         }
+        // Lobi playing durumuna geçince maç ekranına git
+        if (p.new.status === 'playing') {
+          const { data: existingMatch } = await supabase.from('matches').select('id').eq('lobby_id', lb.id).maybeSingle()
+          if (existingMatch) navigate(`/prematch/${existingMatch.id}`)
+        }
       })
       .subscribe()
   }
