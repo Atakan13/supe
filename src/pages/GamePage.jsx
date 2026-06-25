@@ -445,141 +445,233 @@ export default function GamePage() {
 
         {/* ANA */}
         {activeTab === 'home' && (
-          <div style={{ padding:'1.5rem', maxWidth:1000, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 300px', gap:'1rem' }}>
+          <div style={{ padding:'1rem 1.5rem', maxWidth:1200, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 260px 220px', gridTemplateRows:'auto auto', gap:'1rem', fontFamily:"'Rajdhani',sans-serif" }}>
             <style>{`
-              @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,255,0.4)} 70%{box-shadow:0 0 0 10px rgba(0,200,255,0)} }
-              @keyframes shimmer { 0%{left:-100%} 100%{left:200%} }
+              @keyframes shimmer{0%{left:-100%}100%{left:200%}}
+              @keyframes pulse2{0%,100%{opacity:1}50%{opacity:0.6}}
             `}</style>
 
-            {/* HERO: Maç Kartı */}
-            <div style={{ gridColumn:'1/-1', background:'linear-gradient(135deg,rgba(12,12,32,0.95),rgba(8,8,24,0.98))', border:'1px solid rgba(0,200,255,0.15)', borderRadius:16, padding:'1.5rem', position:'relative', overflow:'hidden' }}>
-              <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 80% at 20% 50%,rgba(124,58,237,0.08) 0%,transparent 60%)', pointerEvents:'none' }}/>
-              <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 80% at 80% 50%,rgba(0,100,255,0.08) 0%,transparent 60%)', pointerEvents:'none' }}/>
+            {/* HAFTALIK MAÇ - tam genişlik */}
+            <div style={{ gridColumn:'1/-1', background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem', position:'relative', overflow:'hidden' }}>
+              <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 50% 100% at 20% 50%,rgba(124,58,237,0.08) 0%,transparent 60%)', pointerEvents:'none' }}/>
+              <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 50% 100% at 80% 50%,rgba(0,100,200,0.08) 0%,transparent 60%)', pointerEvents:'none' }}/>
               
-              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(0,200,255,0.5)', marginBottom:16 }}>HAFTALIK MAÇ</div>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>HAFTALIK MAÇ</div>
               
-              <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', alignItems:'center', gap:'1rem' }}>
-                {/* Ev Sahibi */}
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <LogoMini logo={club?.logo} size={52}/>
-                  <div>
-                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, letterSpacing:2, color:'#fff' }}>{myTeam?.team_name}</div>
-                    <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>{formation} · {club?.managerName}</div>
-                    <div style={{ display:'flex', gap:4, marginTop:6 }}>
-                      {['G','G','B','G','M'].map((r,i)=>(
-                        <div key={i} style={{ width:20, height:20, borderRadius:'50%', background:r==='G'?'rgba(16,185,129,0.8)':r==='B'?'rgba(245,158,11,0.8)':'rgba(239,68,68,0.8)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#fff' }}>{r}</div>
-                      ))}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:'1.5rem', alignItems:'center' }}>
+                
+                {/* EV SAHİBİ */}
+                {(() => {
+                  const mySquadPlayers = mySquad?.lineup || []
+                  const starPlayer = mySquadPlayers.length > 0 
+                    ? mySquadPlayers.reduce((best, p) => (p.overall||0) > (best.overall||0) ? p : best, mySquadPlayers[0])
+                    : null
+                  const starCard = starPlayer ? PLAYER_CARDS.find(c => c.name === starPlayer.name) || starPlayer : null
+                  return (
+                    <div style={{ display:'flex', gap:16, alignItems:'center' }}>
+                      {/* FUT Kart */}
+                      <div style={{ width:90, height:115, borderRadius:8, background:'linear-gradient(160deg,#1a1a2e,#16213e)', border:'1px solid rgba(212,175,55,0.4)', position:'relative', overflow:'hidden', flexShrink:0, boxShadow:'0 0 15px rgba(212,175,55,0.15)' }}>
+                        {starCard?.image ? (
+                          <img src={starCard.image} alt={starCard.name} style={{ width:'100%', height:'70%', objectFit:'cover', objectPosition:'top' }}/>
+                        ) : (
+                          <div style={{ width:'100%', height:'70%', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.05)' }}>
+                            <svg viewBox="0 0 60 80" width={40} height={52}><ellipse cx="30" cy="16" rx="11" ry="12" fill="rgba(255,255,255,0.2)"/><path d="M10 45 C10 28 20 22 30 22 C40 22 50 28 50 45 L48 68 L38 68 L36 50 L30 54 L24 50 L22 68 L12 68 Z" fill="rgba(255,255,255,0.2)"/></svg>
+                          </div>
+                        )}
+                        <div style={{ position:'absolute', top:4, left:6 }}>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, color:'#f5e663', lineHeight:1 }}>{starCard?.overall||'--'}</div>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:8, color:'#d4af37', letterSpacing:0.5 }}>{starCard?.position||'--'}</div>
+                        </div>
+                        <div style={{ padding:'4px 6px', background:'rgba(0,0,0,0.6)' }}>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#f5e663', letterSpacing:0.5, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>Star Player</div>
+                          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, fontWeight:700, color:'#fff', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{starCard?.name?.split(' ').pop()||'—'}</div>
+                        </div>
+                      </div>
+                      {/* Takım bilgisi */}
+                      <div>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                          <LogoMini logo={club?.logo} size={28}/>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, letterSpacing:2, color:'#fff' }}>{myTeam?.team_name}</div>
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:8 }}>
+                          <span style={{ fontSize:10 }}>{matchReady?'✅':'❌'}</span>
+                          <span style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:matchReady?'#10b981':'#ef4444', letterSpacing:1 }}>{matchReady?'Hazır':'Hazır Değil'}</span>
+                        </div>
+                        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.3)', marginBottom:4 }}>Form Status</div>
+                        <div style={{ display:'flex', gap:3 }}>
+                          {['W','D','L','W','W'].map((r,i)=>(
+                            <div key={i} style={{ width:22, height:22, borderRadius:4, background:r==='W'?'rgba(16,185,129,0.8)':r==='D'?'rgba(245,158,11,0.8)':'rgba(239,68,68,0.8)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue',sans-serif", fontSize:10, color:'#fff', fontWeight:700 }}>{r}</div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )
+                })()}
 
                 {/* VS */}
-                <div style={{ textAlign:'center', padding:'0 1rem' }}>
-                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, letterSpacing:4, background:'linear-gradient(135deg,#7c3aed,#00c8ff)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1 }}>VS</div>
-                  <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.2)', letterSpacing:2, marginTop:4 }}>İKİ TARAF HAZIR OLUNCA</div>
-                  <div style={{ display:'flex', gap:6, justifyContent:'center', marginTop:6 }}>
-                    <div style={{ width:8, height:8, borderRadius:'50%', background:matchReady?'#10b981':'rgba(255,255,255,0.15)', boxShadow:matchReady?'0 0 8px #10b981':'none' }}/>
-                    <div style={{ width:8, height:8, borderRadius:'50%', background:opTeam?.is_ready?'#10b981':'rgba(255,255,255,0.15)' }}/>
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, letterSpacing:4, background:'linear-gradient(180deg,#fff 0%,rgba(255,255,255,0.3) 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', lineHeight:1 }}>VS</div>
+                  <div style={{ display:'flex', gap:6, justifyContent:'center', marginTop:8 }}>
+                    <div style={{ width:8, height:8, borderRadius:'50%', background:matchReady?'#10b981':'rgba(255,255,255,0.2)', boxShadow:matchReady?'0 0 8px #10b981':'none' }}/>
+                    <div style={{ width:8, height:8, borderRadius:'50%', background:'rgba(255,255,255,0.2)' }}/>
                   </div>
                 </div>
 
-                {/* Deplasman */}
-                <div style={{ display:'flex', alignItems:'center', gap:12, justifyContent:'flex-end' }}>
-                  <div style={{ textAlign:'right' }}>
-                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, letterSpacing:2, color:'#fff' }}>{opTeam?.team_name||'RAKİP BEKLENİYOR'}</div>
-                    <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.35)', letterSpacing:1 }}>{opTeam?.manager_name||'—'}</div>
-                    <div style={{ display:'flex', gap:4, marginTop:6, justifyContent:'flex-end' }}>
-                      {['M','G','G','B','G'].map((r,i)=>(
-                        <div key={i} style={{ width:20, height:20, borderRadius:'50%', background:r==='G'?'rgba(16,185,129,0.8)':r==='B'?'rgba(245,158,11,0.8)':'rgba(239,68,68,0.8)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#fff' }}>{r}</div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ width:52, height:52, borderRadius:10, background:'rgba(124,58,237,0.15)', border:'1px solid rgba(124,58,237,0.3)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>⚽</div>
-                </div>
-              </div>
-            </div>
-
-            {/* SOL KOLON */}
-            <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-
-              {/* Mini Saha + Taktik */}
-              <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'1.25rem' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>AKTİF TAKTİKLER · {formation}</div>
-                
-                {/* Mini saha */}
-                <div style={{ position:'relative', background:'linear-gradient(180deg,#0d3320 0%,#0f4a28 50%,#0d3320 100%)', borderRadius:8, height:140, marginBottom:12, overflow:'hidden' }}>
-                  <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 60" preserveAspectRatio="none">
-                    <rect x="2" y="2" width="96" height="56" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth=".5"/>
-                    <line x1="2" y1="30" x2="98" y2="30" stroke="rgba(255,255,255,.1)" strokeWidth=".4"/>
-                    <circle cx="50" cy="30" r="8" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth=".4"/>
-                    <rect x="2" y="18" width="14" height="24" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".3"/>
-                  </svg>
-                  {/* Oyuncu noktaları */}
-                  {(FORMATION_POSITIONS[formation]||FORMATION_POSITIONS['4-4-2']).map(([pos,[x,y]],i)=>(
-                    <div key={i} style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', width:18, height:18, borderRadius:'50%', background:'rgba(0,200,255,0.25)', border:'1.5px solid rgba(0,200,255,0.6)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue',sans-serif", fontSize:7, color:'#00c8ff' }}>{pos}</div>
-                  ))}
-                </div>
-
-                {/* Taktik özeti */}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                  {Object.entries(tactics).slice(0,4).map(([key, val]) => {
-                    const config = TACTICS_CONFIG[key]
-                    const opt = config?.options.find(o => o.id === val)
-                    return (
-                      <div key={key} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:6, padding:'6px 8px' }}>
-                        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:8, letterSpacing:2, color:'rgba(255,255,255,0.25)', marginBottom:2 }}>{config?.label?.split(' ')[0]}</div>
-                        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:700, color:'#a78bfa' }}>{opt?.name}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Mini Puan Tablosu */}
-              <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'1.25rem' }}>
-                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>PUAN DURUMU</div>
+                {/* DEPLASMAN */}
                 {(() => {
-                  const sorted = [...lobbyPlayers].map(p => {
-                    const st = standings.find(s=>s.user_id===p.user_id)||{points:0,played:0,wins:0,goals_for:0,goals_against:0}
-                    return { ...p, ...st }
-                  }).sort((a,b)=>(b.points||0)-(a.points||0))
-                  const myIdx = sorted.findIndex(p=>p.user_id===userId)
-                  const show = sorted.slice(Math.max(0,myIdx-1), myIdx+2)
-                  return show.map((p,i)=>{
-                    const isMe = p.user_id===userId
-                    const rank = sorted.findIndex(s=>s.user_id===p.user_id)+1
-                    return (
-                      <div key={p.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 8px', borderRadius:6, background:isMe?'rgba(0,200,255,0.06)':'transparent', marginBottom:4, border:isMe?'1px solid rgba(0,200,255,0.1)':'1px solid transparent' }}>
-                        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:12, color:rank===1?'#ffd700':isMe?'#00c8ff':'rgba(255,255,255,0.3)', minWidth:16 }}>{rank}</div>
-                        <div style={{ flex:1, fontFamily:"'Rajdhani',sans-serif", fontSize:13, fontWeight:600, color:isMe?'#00c8ff':'rgba(255,255,255,0.7)' }}>{p.team_name}</div>
-                        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:'rgba(255,255,255,0.35)' }}>{p.played||0} O</div>
-                        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:14, color:isMe?'#00c8ff':'rgba(255,255,255,0.8)', fontWeight:800 }}>{p.points||0}</div>
+                  const opSquad = null
+                  const opStarCard = opTeam ? PLAYER_CARDS.find(c => c.overall >= 85) : null
+                  return (
+                    <div style={{ display:'flex', gap:16, alignItems:'center', justifyContent:'flex-end' }}>
+                      <div style={{ textAlign:'right' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end', marginBottom:6 }}>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, letterSpacing:2, color:'#fff' }}>{opTeam?.team_name||'RAKİP'}</div>
+                          <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>⚽</div>
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'flex-end', marginBottom:8 }}>
+                          <span style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'#f59e0b', letterSpacing:1 }}>Bekleniyor</span>
+                          <span style={{ fontSize:10 }}>⏳</span>
+                        </div>
+                        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.3)', marginBottom:4 }}>Form Status</div>
+                        <div style={{ display:'flex', gap:3, justifyContent:'flex-end' }}>
+                          {['L','D','W','L','D'].map((r,i)=>(
+                            <div key={i} style={{ width:22, height:22, borderRadius:4, background:r==='W'?'rgba(16,185,129,0.8)':r==='D'?'rgba(245,158,11,0.8)':'rgba(239,68,68,0.8)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue',sans-serif", fontSize:10, color:'#fff', fontWeight:700 }}>{r}</div>
+                          ))}
+                        </div>
                       </div>
-                    )
-                  })
+                      {/* Deplasman FUT kart */}
+                      <div style={{ width:90, height:115, borderRadius:8, background:'linear-gradient(160deg,#1a1a2e,#16213e)', border:'1px solid rgba(212,175,55,0.4)', position:'relative', overflow:'hidden', flexShrink:0, boxShadow:'0 0 15px rgba(212,175,55,0.15)' }}>
+                        <div style={{ width:'100%', height:'70%', display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(255,255,255,0.05)' }}>
+                          <svg viewBox="0 0 60 80" width={40} height={52}><ellipse cx="30" cy="16" rx="11" ry="12" fill="rgba(255,255,255,0.2)"/><path d="M10 45 C10 28 20 22 30 22 C40 22 50 28 50 45 L48 68 L38 68 L36 50 L30 54 L24 50 L22 68 L12 68 Z" fill="rgba(255,255,255,0.2)"/></svg>
+                        </div>
+                        <div style={{ padding:'4px 6px', background:'rgba(0,0,0,0.6)' }}>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, color:'#f5e663', letterSpacing:0.5 }}>Star Player</div>
+                          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, fontWeight:700, color:'#fff' }}>{opTeam?.team_name?.split(' ')[0]||'—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 })()}
               </div>
             </div>
 
-            {/* SAĞ KOLON: Haberler */}
-            <div style={{ background:'rgba(8,12,24,0.95)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:'1.25rem', display:'flex', flexDirection:'column' }}>
+            {/* AKTİF TAKTİKLER */}
+            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)' }}>AKTİF TAKTİKLER</div>
+                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, letterSpacing:2, color:'rgba(255,100,200,0.8)' }}>{formation}</div>
+              </div>
+              {/* Mini saha */}
+              <div style={{ position:'relative', background:'linear-gradient(180deg,#0a2a12 0%,#0d3a18 50%,#0a2a12 100%)', borderRadius:8, height:160, marginBottom:12, overflow:'hidden', border:'1px solid rgba(255,255,255,0.06)' }}>
+                <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 70" preserveAspectRatio="none">
+                  <rect x="2" y="2" width="96" height="66" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth=".6"/>
+                  <line x1="2" y1="35" x2="98" y2="35" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
+                  <circle cx="50" cy="35" r="9" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".4"/>
+                  <rect x="2" y="22" width="14" height="26" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
+                  <rect x="84" y="22" width="14" height="26" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth=".3"/>
+                </svg>
+                {(FORMATION_POSITIONS[formation]||FORMATION_POSITIONS['4-4-2']).map(([pos,[x,y]],i)=>{
+                  const slotPlayer = squadLineup[i]
+                  const hasPlayer = !!slotPlayer
+                  return (
+                    <div key={i} title={slotPlayer?.name||pos} style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
+                      <div style={{ width:20, height:20, borderRadius:'50%', background:hasPlayer?'rgba(255,100,200,0.3)':'rgba(255,255,255,0.1)', border:`1.5px solid ${hasPlayer?'rgba(255,100,200,0.8)':'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {slotPlayer?.image && <img src={slotPlayer.image} style={{ width:18, height:18, borderRadius:'50%', objectFit:'cover', objectPosition:'top' }}/>}
+                      </div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:6, color:'rgba(255,255,255,0.6)', letterSpacing:0.3, whiteSpace:'nowrap' }}>{slotPlayer?.name?.split(' ').pop()||pos}</div>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Mantalite */}
+              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                {Object.entries(tactics).slice(0,3).map(([key,val])=>{
+                  const config = TACTICS_CONFIG[key]
+                  const opt = config?.options.find(o=>o.id===val)
+                  return opt ? (
+                    <div key={key} style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:11, color:'rgba(255,255,255,0.5)' }}>
+                      <span style={{ color:'rgba(255,255,255,0.3)' }}>Mantalite: </span>
+                      <span style={{ color:'rgba(255,200,100,0.9)', fontWeight:600 }}>{opt.name}</span>
+                    </div>
+                  ) : null
+                })}
+              </div>
+            </div>
+
+            {/* MİNİ LİG TABLOSU */}
+            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem' }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>MİNİ LİG TABLOSU</div>
+              <div style={{ display:'grid', gridTemplateColumns:'16px 1fr 28px 28px 28px', gap:'4px 6px', marginBottom:8 }}>
+                {['#','Takım','P','O','R'].map(h=>(
+                  <div key={h} style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:9, letterSpacing:1, color:'rgba(255,255,255,0.2)', textAlign:h==='Takım'?'left':'center' }}>{h}</div>
+                ))}
+              </div>
+              {[...lobbyPlayers]
+                .map(p => {
+                  const st = standings.find(s=>s.user_id===p.user_id)||{points:0,played:0,wins:0}
+                  return {...p, ...st}
+                })
+                .sort((a,b)=>(b.points||0)-(a.points||0))
+                .map((p, i) => {
+                  const isMe = p.user_id === userId
+                  const lp = lobbyPlayers.find(lp=>lp.user_id===p.user_id)
+                  return (
+                    <div key={p.user_id} style={{ display:'grid', gridTemplateColumns:'16px 1fr 28px 28px 28px', gap:'4px 6px', padding:'6px 4px', borderRadius:6, background:isMe?'rgba(16,185,129,0.08)':'transparent', border:isMe?'1px solid rgba(16,185,129,0.2)':'1px solid transparent', marginBottom:3, alignItems:'center' }}>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:i===0?'#ffd700':isMe?'#10b981':'rgba(255,255,255,0.4)', textAlign:'center' }}>{i+1}.</div>
+                      <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                        <LogoMini logo={isMe?club?.logo:lp?.logo} size={16}/>
+                        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:700, color:isMe?'#10b981':'rgba(255,255,255,0.75)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.team_name}</div>
+                      </div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:13, color:isMe?'#10b981':'rgba(255,255,255,0.8)', textAlign:'center', fontWeight:800 }}>{p.points||0}</div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:'rgba(255,255,255,0.4)', textAlign:'center' }}>{p.played||0}</div>
+                      <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:11, color:'rgba(255,255,255,0.4)', textAlign:'center' }}>{p.wins||0}</div>
+                    </div>
+                  )
+                })
+              }
+            </div>
+
+            {/* SON HABERLER */}
+            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem', display:'flex', flexDirection:'column' }}>
               <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:12 }}>SON HABERLER</div>
-              <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, maxHeight:320 }}>
+              <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
                 {news.map(n => (
-                  <div key={n.id} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:8, padding:'10px 12px', display:'flex', gap:10 }}>
-                    <div style={{ fontSize:16, flexShrink:0 }}>📰</div>
-                    <div>
-                      <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.75)', lineHeight:1.4, marginBottom:4 }}>{n.text}</div>
+                  <div key={n.id} style={{ display:'flex', gap:10, padding:'8px 10px', background:'rgba(255,255,255,0.03)', borderRadius:8, border:'1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ width:32, height:32, borderRadius:8, background:'rgba(124,58,237,0.2)', border:'1px solid rgba(124,58,237,0.3)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0 }}>📰</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.75)', lineHeight:1.4, marginBottom:3 }}>{n.text}</div>
                       <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:10, color:'rgba(255,255,255,0.25)' }}>{n.time}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* KULÜP DİNAMİKLERİ */}
+            <div style={{ background:'rgba(10,10,28,0.9)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'1.25rem' }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:3, color:'rgba(255,255,255,0.3)', marginBottom:14 }}>KULÜP DİNAMİKLERİ</div>
+              {[
+                { label:'Takım Morali', value:90, color:'#10b981' },
+                { label:'Bütçe', value:85, color:'#10b981', suffix:'€2.4M' },
+                { label:'Taraftar Güveni', value:85, color:'#10b981' },
+              ].map(({label, value, color, suffix}) => (
+                <div key={label} style={{ marginBottom:14 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+                    <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.7)' }}>{label}</div>
+                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:12, color, letterSpacing:1 }}>{suffix||`${value}%`}</div>
+                  </div>
+                  <div style={{ height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
+                    <div style={{ height:'100%', width:`${value}%`, background:`linear-gradient(90deg,${color}88,${color})`, borderRadius:3, position:'relative' }}>
+                      <div style={{ position:'absolute', right:0, top:'50%', transform:'translateY(-50%)', width:8, height:8, borderRadius:'50%', background:color, boxShadow:`0 0 6px ${color}` }}/>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </div>
         )}
-
-        {/* KADRO & TAKTİK */}
+                {/* KADRO & TAKTİK */}
         {activeTab === 'squad' && (
           <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', height:'calc(100vh - 112px)', overflow:'hidden' }}>
 
