@@ -462,7 +462,7 @@ export default function GamePage() {
                 
                 {/* EV SAHİBİ */}
                 {(() => {
-                  const mySquadPlayers = mySquad?.lineup || []
+                  const mySquadPlayers = squadLineup?.filter(Boolean) || []
                   const starPlayer = mySquadPlayers.length > 0 
                     ? mySquadPlayers.reduce((best, p) => (p.overall||0) > (best.overall||0) ? p : best, mySquadPlayers[0])
                     : null
