@@ -595,7 +595,7 @@ export default function MatchPage() {
       </div>
 
       {/* TAB BAR */}
-      <div style={{background:'#0f0f2a',borderBottom:'1px solid #1e1e4a',display:'flex',padding:'0 1rem',flexShrink:0}}>
+      <div style={{position:'relative', zIndex:1, background:'rgba(20,25,40,0.7)',backdropFilter:'blur(10px)',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',padding:'0 1rem',flexShrink:0}}>
         {[['stats','📊 İstatistik'],['lineup','👥 Kadrolar'],['subs','🔄 Değişiklik']].map(([tab,label])=>(
           <button key={tab} onClick={()=>setActiveMatchTab(tab)}
             style={{padding:'.5rem .85rem',border:'none',background:'transparent',color:activeMatchTab===tab?'#a78bfa':'#606080',fontWeight:700,fontSize:'.75rem',cursor:'pointer',borderBottom:activeMatchTab===tab?'2px solid #7c3aed':'2px solid transparent'}}>
@@ -604,10 +604,10 @@ export default function MatchPage() {
         ))}
       </div>
 
-      <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 300px',overflow:'hidden'}}>
+      <div style={{flex:1, position:'relative', zIndex:1, display:'grid',gridTemplateColumns:'1fr 300px',overflow:'hidden'}}>
 
         {/* SOL */}
-        <div style={{display:'flex',flexDirection:'column',overflow:'hidden',borderRight:'1px solid #1e1e4a'}}>
+        <div style={{display:'flex',flexDirection:'column',overflow:'hidden',borderRight:'1px solid rgba(255,255,255,0.06)',background:'rgba(10,10,20,0.5)'}}>
 
           {/* Hamle paneli */}
           {['pick_attacker','pick_defender','pick_gk'].includes(phase) && (
