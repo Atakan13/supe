@@ -133,6 +133,7 @@ export default function GamePage() {
   const [saving, setSaving] = useState(false)
 
   const [lineup, setLineup] = useState(Array(11).fill(null))
+  const [opSquad, setOpSquad] = useState(null)
   const [bench, setBench] = useState([])
   const [unassigned, setUnassigned] = useState([])
   const [tactics, setTactics] = useState({ pressing:'high_press', tempo:'normal', attack_width:'mixed', defense_line:'standard', buildup:'short', set_piece:'long' })
@@ -169,6 +170,10 @@ export default function GamePage() {
 
     // Kayıtlı kadro var mı?
     const { data: myS } = await supabase.from('squads').select('*').eq('lobby_id', lb.id).eq('user_id', userId).maybeSingle()
+    // Rakibin kadrosunu çek
+    const { data: allSquads } = await supabase.from('squads').select('*').eq('lobby_id', lb.id)
+    const opS = allSquads?.find(s => s.user_id !== userId)
+    if (opS) setOpSquad(opS)
     if (myS && myS.lineup && myS.lineup.length > 0) {
       const savedLineup = [...myS.lineup, ...Array(11 - myS.lineup.length).fill(null)].slice(0, 11)
       setLineup(savedLineup)
