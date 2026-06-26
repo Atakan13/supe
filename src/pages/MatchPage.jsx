@@ -189,7 +189,7 @@ export default function MatchPage() {
       setHomeDice(ev.home_dice)
       setAwayDice(ev.away_dice)
       setDiceRolling(false)
-      setAttackingHome(ev.home_dice >= ev.away_dice)
+      setAttackingHome(ev.attacking_home ?? (ev.home_dice >= ev.away_dice))
       // Oyuncu seçimi fazına geç
       const amHost = isHostRef.current
       const attackHome = ev.home_dice >= ev.away_dice
@@ -273,7 +273,7 @@ export default function MatchPage() {
     // Oyuncu seçimlerini DB'den çek
     const { data: actions } = await supabase.from('match_actions').select('*').eq('match_id', matchId).eq('event_no', evNo)
     
-    const atkHome = hDice >= aDice
+    const atkHome = hDice > aDice || (hDice === aDice && Math.random() > 0.5)
     const atkPlayers = atkHome ? hPlayers : aPlayers
     const defPlayers = atkHome ? aPlayers : hPlayers
     const atkStam = atkHome ? hStam : aStam
@@ -406,7 +406,7 @@ export default function MatchPage() {
 
   // ── Yardımcılar ───────────────────────────────────────────
   const getStamColor = (val) => val >= 70 ? '#10b981' : val >= 40 ? '#f59e0b' : '#ef4444'
-  const isAttackingHome = homeDice >= (awayDice || 0)
+  const isAttackingHome = (homeDice || 0) >= (awayDice || 0)
 
   // ── Render ────────────────────────────────────────────────
   if (loading) return (
