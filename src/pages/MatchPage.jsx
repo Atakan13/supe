@@ -474,7 +474,8 @@ export default function MatchPage() {
             {homePlayers.map((p, i) => {
               const stam = homeStamina[p.name] || 100
               const isSelected = selectedAttackers.find(s=>s.name===p.name) || selectedDefenders.find(s=>s.name===p.name)
-              const canSelect = phase === 'select' && ((isHost && myRole === 'attacker' && isAttackingHome) || (isHost && myRole === 'defender' && !isAttackingHome) || (!isHost && myRole === 'attacker' && !isAttackingHome) || (!isHost && myRole === 'defender' && isAttackingHome))
+              // Sol panel = ev sahibi oyuncuları. Sadece isHost seçebilir
+              const canSelect = phase === 'select' && isHost && myRole !== null
               return (
                 <div key={i} onClick={() => canSelect && togglePlayer(p, myRole)}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', borderRadius:8, background:isSelected?'rgba(74,144,226,0.25)':'rgba(255,255,255,0.03)', border:`1px solid ${isSelected?'rgba(74,144,226,0.6)':'rgba(255,255,255,0.05)'}`, cursor:canSelect?'pointer':'default', transition:'all .15s' }}>
@@ -592,7 +593,8 @@ export default function MatchPage() {
             {awayPlayers.map((p, i) => {
               const stam = awayStamina[p.name] || 100
               const isSelected = selectedAttackers.find(s=>s.name===p.name) || selectedDefenders.find(s=>s.name===p.name)
-              const canSelect = phase === 'select' && ((!isHost && myRole === 'attacker' && !isAttackingHome) || (!isHost && myRole === 'defender' && isAttackingHome) || (isHost && myRole === 'attacker' && isAttackingHome) || (isHost && myRole === 'defender' && !isAttackingHome))
+              // Sağ panel = deplasman oyuncuları. Sadece !isHost seçebilir
+              const canSelect = phase === 'select' && !isHost && myRole !== null
               return (
                 <div key={i} onClick={() => canSelect && togglePlayer(p, myRole)}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', borderRadius:8, background:isSelected?'rgba(226,176,74,0.2)':'rgba(255,255,255,0.03)', border:`1px solid ${isSelected?'rgba(226,176,74,0.5)':'rgba(255,255,255,0.05)'}`, cursor:canSelect?'pointer':'default', transition:'all .15s' }}>
