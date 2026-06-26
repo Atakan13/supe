@@ -218,6 +218,7 @@ export default function MatchPage() {
     }
     if (ev.event_type === 'goal') {
       addCommentary(ev.narrative_text, 'goal')
+      // Skor zaten clash event'te DB'ye yazıldı, handleMatchUpdate okur
     }
   }
 
@@ -338,8 +339,7 @@ export default function MatchPage() {
       else newAwayScore++
 
       await supabase.from('matches').update({ home_score: newHomeScore, away_score: newAwayScore }).eq('id', matchId)
-      setHomeScore(newHomeScore)
-      setAwayScore(newAwayScore)
+      // setHomeScore/setAwayScore kaldırıldı - handleMatchUpdate realtime ile günceller
 
       const goalLine = getRand(SPIKER_LINES.goal).replace('{player}', goalScorer.name?.split(' ').pop() || 'Oyuncu')
       await supabase.from('match_events').insert({
