@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getClub, saveClub } from '../lib/club'
 import { KitPreview } from './MenuPage'
-import JerseyViewer from '../components/JerseyViewer'
 
 const KIT_COLORS = ['#8a2be2','#4169e1','#dc143c','#ffa500','#20b2aa','#ff69b4','#ffffff','#ff4500','#1e90ff','#9370db','#ff1493','#00fa9a','#7c3aed','#1f2937','#10b981','#f59e0b']
 const KIT_PATTERNS = [
@@ -94,9 +93,9 @@ export default function CreateKitPage() {
             </div>
 
             <div style={{ display:'flex', gap:'1.25rem' }}>
-              {/* 3D Model */}
-              <div style={{ flex:1, background:'rgba(0,0,0,0.2)', borderRadius:8, minHeight:280, overflow:'hidden' }}>
-                <JerseyViewer primary={primary} secondary={secondary} pattern={pattern}/>
+              {/* Forma Önizleme */}
+              <div style={{ flex:1, background:'rgba(0,0,0,0.2)', borderRadius:8, minHeight:280, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <KitPreview primary={primary} secondary={secondary} pattern={pattern} size={160}/>
               </div>
 
               {/* Seçenekler */}
