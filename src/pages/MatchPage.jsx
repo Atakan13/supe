@@ -572,10 +572,10 @@ export default function MatchPage() {
   if(loading) return <div style={{minHeight:'100vh',background:'#0a0a1a',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{color:'#a0a0c0'}}>Maç yükleniyor...</div></div>
 
   return (
-    <div style={{height:'100vh',background:'#0a0a1a',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <div style={{height:'100vh', backgroundImage:'url(/assets/stadium_bg.jpg)', backgroundSize:'cover', backgroundPosition:'center',display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
       {/* SKOR */}
-      <div style={{background:'#0f0f2a',borderBottom:'1px solid #1e1e4a',padding:'.6rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+      <div style={{background:'rgba(20,25,40,0.75)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.08)',padding:'.75rem 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
         <div style={{flex:1,textAlign:'center'}}>
           <div style={{fontWeight:800,fontSize:'.88rem'}}>{isHome?'🏠 ':''}{myTeam?.team_name}</div>
           <div style={{fontSize:'.62rem',color:'#606080'}}>{mySquad?.formation||'?'}</div>
