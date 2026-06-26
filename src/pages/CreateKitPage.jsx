@@ -147,11 +147,11 @@ export default function CreateKitPage() {
             {/* İç + Deplasman */}
             <div style={{ display:'flex', gap:12, flex:1, marginBottom:16 }}>
               <div style={{ flex:1, background:'rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:8, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'space-between', padding:'16px 8px' }}>
-                <KitPreview primary={kitPrimary} secondary={kitSecondary} pattern={kitPattern} size={110}/>
+                <KitPreview primary={kitPrimary} secondary={kitSecondary} pattern={kitPattern} size={150}/>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:2, color:'rgba(255,255,255,0.3)', marginTop:10 }}>İÇ SAHA</div>
               </div>
               <div style={{ flex:1, background:'rgba(0,0,0,0.3)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:8, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'space-between', padding:'16px 8px' }}>
-                <KitPreview primary={awayPrimary} secondary={awaySecondary} pattern={awayPattern} size={110}/>
+                <KitPreview primary={awayPrimary} secondary={awaySecondary} pattern={awayPattern} size={150}/>
                 <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:10, letterSpacing:2, color:'rgba(255,255,255,0.3)', marginTop:10 }}>DEPLASMAN</div>
               </div>
             </div>
