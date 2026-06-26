@@ -158,12 +158,10 @@ export default function MatchPage() {
     setupRealtime(m.id)
 
     // Host maçı başlatır
-    console.log('amHost:', amHost, 'status:', m.status, 'hPlayers:', hPlayers.length, 'aPlayers:', aPlayers.length)
-    if (amHost && m.status !== 'finished') {
-      console.log('MAÇ BAŞLIYOR - startTurn çağrılıyor')
+    if (amHost) {
+      // Her zaman sıfırla ve başlat
       await supabase.from('matches').update({ status: 'active', home_score: 0, away_score: 0, current_event: 0 }).eq('id', m.id)
       setTimeout(() => {
-        console.log('startTurn 0 çağrıldı, players:', homePlayersRef.current.length, awayPlayersRef.current.length)
         startTurn(0, homePlayersRef.current, awayPlayersRef.current, hStam, aStam, {}, {})
       }, 2000)
     }
