@@ -96,7 +96,7 @@ export default function LobbyPage() {
   )
 
   return (
-    <div style={{ minHeight:'100vh', backgroundImage:'url(/assets/lobby_bg.png)', backgroundSize:'cover', backgroundPosition:'center', display:'flex', flexDirection:'column', alignItems:'center', padding:'2.5rem 1.5rem', position:'relative' }}>
+    <div style={{ minHeight:'100vh', backgroundImage:'url(/assets/lobby_bg.jpg)', backgroundSize:'cover', backgroundPosition:'center', display:'flex', flexDirection:'column', alignItems:'center', padding:'2.5rem 1.5rem', position:'relative' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');`}</style>
       <div style={{ position:'fixed', inset:0, background:'rgba(4,4,16,0.82)', pointerEvents:'none' }}/>
       <div style={{ position:'fixed', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 0%,rgba(0,200,255,0.08) 0%,transparent 70%)', pointerEvents:'none' }}/>
