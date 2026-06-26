@@ -102,6 +102,8 @@ export default function MatchPage() {
   const isHostRef   = useRef(false)
   const gameRef     = useRef(gameState)
   gameRef.current   = gameState
+  const homePlayersRef = useRef([])
+  const awayPlayersRef = useRef([])
 
   // ── Init ────────────────────────────────────────────────
   useEffect(() => {
@@ -137,6 +139,8 @@ export default function MatchPage() {
     const aPlayers = enrich(aSquad?.lineup)
     setHomePlayers(hPlayers)
     setAwayPlayers(aPlayers)
+    homePlayersRef.current = hPlayers
+    awayPlayersRef.current = aPlayers
 
     // Kondisyon başlat
     const hStam = {}; hPlayers.forEach(p => { hStam[p.name] = 100 })
@@ -156,7 +160,7 @@ export default function MatchPage() {
     // Host maçı başlatır
     if (amHost && m.status !== 'finished') {
       await supabase.from('matches').update({ status: 'active', home_score: 0, away_score: 0, current_event: 0 }).eq('id', m.id)
-      setTimeout(() => startTurn(0, hPlayers, aPlayers, hStam, aStam, {}, {}), 2000)
+      setTimeout(() => startTurn(0, homePlayersRef.current, awayPlayersRef.current, hStam, aStam, {}, {}), 2000)
     }
   }
 
