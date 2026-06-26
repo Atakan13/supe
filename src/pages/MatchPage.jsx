@@ -71,6 +71,7 @@ export default function MatchPage() {
   const [homeScore, setHomeScore] = useState(0)
   const [awayScore, setAwayScore] = useState(0)
   const [eventNo, setEventNo] = useState(0)       // Kaçıncı event (0-19)
+  const [isHome, setIsHome] = useState(false)     // Bu kullanıcı ev sahibi mi
   const [minute, setMinute] = useState(0)
   const [phase, setPhase] = useState('waiting')   // waiting|dice|select_atk|select_def|clash|result|finished
   const [isFinished, setIsFinished] = useState(false)
@@ -180,6 +181,7 @@ export default function MatchPage() {
     setHomeScore(m.home_score || 0)
     setAwayScore(m.away_score || 0)
     setMinute(m.current_minute || 0)
+    setEventNo(m.current_event || 0)
     if (m.status === 'finished') { setIsFinished(true); setPhase('finished') }
   }
 
@@ -192,10 +194,14 @@ export default function MatchPage() {
       setAttackingHome(ev.attacking_home ?? (ev.home_dice >= ev.away_dice))
       // Oyuncu seçimi fazına geç
       const amHost = isHostRef.current
-      const attackHome = ev.home_dice >= ev.away_dice
-      if (attackHome && amHost) setMyRole('attacker')
-      else if (!attackHome && !amHost) setMyRole('attacker')
-      else setMyRole('defender')
+      const attackHome = ev.attacking_home ?? (ev.home_dice >= ev.away_dice)
+      // Ev sahibi hücumdaysa: host=attacker, misafir=defender
+      // Deplasman hücumdaysa: host=defender, misafir=attacker
+      if (attackHome) {
+        setMyRole(amHost ? 'attacker' : 'defender')
+      } else {
+        setMyRole(amHost ? 'defender' : 'attacker')
+      }
       setPhase('select')
       setTimeLeft(20)
     }
@@ -235,6 +241,7 @@ export default function MatchPage() {
     // Dakika hesapla (0-90)
     const min = Math.floor((evNo / TOTAL_EVENTS) * 90)
     await supabase.from('matches').update({ current_event: evNo, current_minute: min }).eq('id', matchId)
+    setEventNo(evNo)
     setMinute(min)
 
     // Yarı arası
@@ -321,8 +328,10 @@ export default function MatchPage() {
     setAwayStamina(newAStam)
 
     // Sonuç DB'ye
-    let newHomeScore = homeScore
-    let newAwayScore = awayScore
+    // DB'den güncel skoru çek
+    const { data: currentMatch } = await supabase.from('matches').select('home_score,away_score').eq('id', matchId).maybeSingle()
+    let newHomeScore = currentMatch?.home_score || 0
+    let newAwayScore = currentMatch?.away_score || 0
 
     if (atkWins && goalScorer) {
       if (atkHome) newHomeScore++
